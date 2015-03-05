@@ -89,8 +89,7 @@ int recognizer(double finalB1L1[200][1], double finalB1L2[200][1], double finalW
   {
     M = 0;
   } // Check for zero
-  
-    printf("Hello, World!\n");
+
 
   //output = M;
     return M;
