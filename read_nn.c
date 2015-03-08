@@ -38,13 +38,19 @@ void read_nn(void){
 	fclose(fp);
 	
 	fp = fopen("finalB1L1.csv",r);
-	for(i = 0; i < 10; i++){
+	for(i = 0; i < 200; i++){
 			fscanf(fp, "%d", &(finalB1L1[i]))
 	}
 	fclose(fp);
 	fp = fopen("finalB1L2.csv",r);
-	for(i = 0; i < 10; i++){
+	for(i = 0; i < 200; i++){
 			fscanf(fp, "%d", &(finalB1L2[i]))
+	}
+	fclose(fp);
+	
+	fp = fopen("data.csv",r);
+	for(i = 0; i < 784; i++){
+			fscanf(fp, "%d", &(data[i]))
 	}
 	fclose(fp);
 	
