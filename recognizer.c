@@ -8,9 +8,9 @@ int recognizer(double finalB1L1[200][1], double finalB1L2[200][1], double finalW
   
   
   // Vb1 = finalW1L1*data;
-  for (i = 0; i = 200; i++)
+  for (i = 0; i < 200; i++)
   {
-    for (j = 0; j = 784; j++)
+    for (j = 0; j < 784; j++)
     {
       sum = sum + finalW1L1[i][j] * data[j][1];
     } // Matrix Multiplication
@@ -20,23 +20,23 @@ int recognizer(double finalB1L1[200][1], double finalB1L2[200][1], double finalW
   
   
   //Vb1 = Vb1 + finalB1L1;
-  for (i = 0; i = 200; i ++)
+  for (i = 0; i < 200; i ++)
   {
     Vb1[i] = Vb1[i][1] + finalB1L1[i][1];
   } // Matrix Addition
   
   
   //Vb1 = sigmf(Vb1,[1 0]);
-  for (i = 0; i = 200; i++)
+  for (i = 0; i < 200; i++)
   {
     Vb1[i][1] = 1/(1+exp(-*Vb1[i][1]));
   } // Sigmoid
   
   
   //Vb1 = finalW1L2*Vb1;
-  for (i = 0; i = 200; i++)
+  for (i = 0; i < 200; i++)
   {
-    for (j = 0; j = 200; j++)
+    for (j = 0; j < 200; j++)
     {
       sum = sum + finalW1L2[i][j] * data[j][1];
     } // Matrix Multiplication
@@ -46,23 +46,23 @@ int recognizer(double finalB1L1[200][1], double finalB1L2[200][1], double finalW
   
   
   //Vb1 = Vb1 + finalB1L2;
-  for (i = 0; i = 200; i ++)
+  for (i = 0; i < 200; i ++)
   {
     Vb1[i] = Vb1[i][1] + finalB1L2[i][1];
   } // Matrix Addition
 
 
   //Vb1 = sigmf(Vb1,[1 0]);
-  for (i = 0; i = 200; i++)
+  for (i = 0; i < 200; i++)
   {
     Vb1[i][1] = 1/(1+exp(-*Vb1[i][1]));
   } // Sigmoid
   
   
   //Vb1 = finalSoftmaxTheta*Vb1;          finalSoftmaxTheta[10][200]
-  for (i = 0; i = 10; i++)
+  for (i = 0; i < 10; i++)
   {
-    for (j = 0; j = 200; j++)
+    for (j = 0; j < 200; j++)
     {
       sum = sum + finalSoftmaxTheta[i][j]*Vb1[j][1];
     } //
@@ -72,7 +72,7 @@ int recognizer(double finalB1L1[200][1], double finalB1L2[200][1], double finalW
   
 
   //M = find(Vb1==max(Vb1));
-  for (i = 0; i = 10; i++)
+  for (i = 0; i < 10; i++)
   {
     if (M < Vb2[i][1])
     {
