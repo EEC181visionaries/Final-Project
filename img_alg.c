@@ -5,8 +5,11 @@
 #define DDR3_ADDR
 
 int image[WIDTH][HEIGHT];
-int w, x, y, v;
-char black_white[WIDTH][HEIGHT];
+int w, x, y, v, lt, lb, rt, rb;
+int black_white[WIDTH][HEIGHT];
+int roi[WIDTH][HEIGHT]
+int digit[WIDTH][HEIGHT];
+int size_x = 0, size_y = 0;
 
 void gray_bw(){
 
@@ -169,7 +172,149 @@ void region(){
 		}
 	}
 	
-	
+	x += 3;
+	y -= 3;
+
+	for(i = w; i < v; i++){
+		if(lt == 0){
+			if(black_white[i][w]==0)
+				lt = i;
+		}
+		if(lb == 0){
+			if(black_white[v-i][w]==0)
+				lb = v-i;
+		}
+		if(rt == 0){
+			if(black_white[i][y]==0)
+				rt = i;
+		}
+		if(rb == 0){
+			if(black_white[v-i][y]==0)
+				rb = v-i;
+		}
+		if(lt && lb && rt && rb)
+			break;
+		
+	}
+
+	if(lt >= rt)
+		v = lt;
+	else
+		v = rt;
+
+	if(lb <= rb)
+		w = lb;
+	else
+		w = rb;
+
+	int tempx = 0, tempy = 0;
+	for(i = w; i < v; i++){
+		for(j = x; j < y; j++){
+			roi[tempx][tempy] = black_white[i][j];
+			tempy++;
+		}
+		tempx++;
+	}
+	size_x = tempx;
+	size_y = tempy;
+
+
+	FILE *fp = fopen("roi.csv", "w");
+
+	for(i = 0; i < size_x; i++){
+		for(j = 0; j < size_y; j++){
+			fprintf(fp, "%d",roi[i][j]);
+			if(j < size_y - 1)
+				fprintf(fp, ",");
+		}
+		fprintf(fp, "\n");
+
+	}
+	fclose(fp);
+
 }//region()
 
+
+
+
+void separate(){
+
+	int i = size_y/2;
+	int j = 0;
+	int hit = 0;
+	int right_edge = 0;
+	int bad = 0;
+	int last = 0;
+	int last_mid = 1;
+	int first = 1;
+	int mid;
+
+
+	for(j = 0; j < size_x; j = j + 4){
+	
+		if((roi[i][j] == 1) || (j + 4 > size_x)){
+			if(first == 1){
+				first = 0;
+				hit = 1;
+			}
+			else if(hit == 0){
+				hit = 1;
+				mid = ((j - right_edge)/2) + right_edge;
+				if(roi[i][j] == 1){
+					for(int mid_row = 0; mid_row < size_y; mid_row++){
+						if(roi[mid_row][mid] == 1){
+							bad = 1;
+							break;
+						}
+					}
+				}
+				int tempx = 0, tempy = 0, break_flag = 0;
+				if(bad != 1){
+					for(int k = 0; k < size_y; k++){
+						for(int l = last_mid; l < mid){
+							digit[tempx][tempy] = roi[k][l];
+`							tempy++;
+						} 
+						tempx++;
+					} //Create digit matrix
+					int digit_left = 1;
+					int digit_right = mid-last_mid;
+					for(int k = 0; k < mid-last_mid; k++){
+						for(int l = 0; int < tempy; l++){
+							if(digit[k][l] == 0){
+								digit_left = k;
+								break_flag = 1;
+								break;
+							}
+						}
+						if(break_flag)
+							break;
+					}
+					for(int k = mid - last_mid; k > 0; k--){
+						for(int l = 0; int < tempy; l++){
+							if(digit[k][l] == 0){
+								digit_right = k;
+								break_flag = 1;
+								break;
+							}
+						}
+						if(break_flag)
+							break;
+					}					
+					int digit_width = digit_right - digit_left;
+					int right_add = (size_y-digit_width)/2;
+					int left_add = right_add + 1;
+
+
+				}		
+
+			}
+
+		}
+
+
+
+	}
+
+}
 
