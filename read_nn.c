@@ -2,7 +2,7 @@
 // included in NN.mat. Files are used for
 // the image processing neural network.
 
-#include<stdio.h>
+//#include<stdio.h>
 
 //Declare global variables
 double finalB1L1[200];
