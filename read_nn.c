@@ -41,7 +41,7 @@ void read_nn(void)
   {
     for(j = 0; j < 784; j++)
     {
-      fscanf(fp, "%le", &(finalW1L1[i][j]));
+      fscanf(fp, "%Le", &(finalW1L1[i][j]));
     }
   }
   fclose(fp);
@@ -52,7 +52,7 @@ void read_nn(void)
   {
     for(j = 0; j < 200; j++)
     {
-      fscanf(fp, "%le", &(finalW1L2[i][j]));
+      fscanf(fp, "%Le", &(finalW1L2[i][j]));
     }
   }
   fclose(fp);
@@ -63,7 +63,7 @@ void read_nn(void)
   {
     for(j = 0; j < 200; j++)
     {
-      fscanf(fp, "%le", &(finalSoftmaxTheta[i][j]));
+      fscanf(fp, "%Le", &(finalSoftmaxTheta[i][j]));
     }
   }
   fclose(fp);
@@ -72,7 +72,7 @@ void read_nn(void)
   fp = fopen("finalB1L1.csv","r");
   for(i = 0; i < 200; i++)
   {
-    fscanf(fp, "%le", &(finalB1L1[i]));
+    fscanf(fp, "%Le", &(finalB1L1[i]));
   }
   fclose(fp);
 	
@@ -80,7 +80,7 @@ void read_nn(void)
   fp = fopen("finalB1L2.csv","r");
   for(i = 0; i < 200; i++)
   {
-    fscanf(fp, "%le", &(finalB1L2[i]));
+    fscanf(fp, "%Le", &(finalB1L2[i]));
   }
   fclose(fp);
 
