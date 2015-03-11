@@ -5,12 +5,12 @@
 //#include<stdio.h>
 
 //Declare global variables
-double finalB1L1[200];
-double finalB1L2[200];
-double finalW1L1[200][784];
-double finalW1L2[200][200];
-double finalSoftmaxTheta[10][200];
-int data[784];
+long double finalB1L1[200];
+long double finalB1L2[200];
+long double finalW1L1[200][784];
+long double finalW1L2[200][200];
+long double finalSoftmaxTheta[10][200];
+long double data[784];
 
 /*
 void read_nn(void);
@@ -88,7 +88,7 @@ void read_nn(void)
   fp = fopen("data.csv","r");
   for(i = 0; i < 784; i++)
   {
-    fscanf(fp, "%d", &(data[i]));
+    fscanf(fp, "%Le", &(data[i]));
   }
   fclose(fp);	
 
