@@ -4,7 +4,7 @@
 #define HEIGHT
 #define DDR3_ADDR
 
-int image[WIDTH][HEIGHT];
+double image[WIDTH][HEIGHT];
 int w, x, y, v, lt, lb, rt, rb;
 int black_white[WIDTH][HEIGHT];
 int roi[WIDTH][HEIGHT]
@@ -43,6 +43,41 @@ void gray_bw(){
 	}//for i
 
 }//gray_bw()
+
+
+
+void gray_bw2(){
+
+
+	int i,j, data1,data2, red, green, blue, gray;
+
+
+	FILE *fp = fopen("pic.csv", "r");
+	
+
+	for(i = 0; i < WIDTH; i++){
+	
+		for(j = 0; j < HEIGHT; j++){
+			image[i][j] = 0;
+			black_white[i][j] = 0;
+			fscanf(fp,"%lf",&data1);
+			fscanf(fp,"%lf",&data2)
+
+			red = data1 & 1023;
+			blue = data2 & 1023;
+			green = ((data1 & 31744)>>5) | ((data2 &31744) >> 10);
+			gray = (red *.21) + (.72 * green) + (.07*blue);
+			image[i][j] = gray;
+			if(gray > .7)
+				black_white[i][j] = 1;
+			else
+				black_white[i][j] = 0;			
+	
+		}//for j
+	}//for i
+
+}//gray_bw()
+
 
 void region(){
 	int prev = 0, val = 0, i, j;
