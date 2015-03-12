@@ -54,12 +54,12 @@ int main(void)
   }
 
   int i, j;
-  for (i = 0; i < HEIGHT; i++)
+  for (i = 0; i < WIDTH; i++)
   {
-    for (j = 0; j < WIDTH; j++)
+    for (j = 0; j < HEIGHT; j++)
     {
       fprintf(f, "%d", black_white[i][j]);
-      if ((j + 1) != WIDTH)
+      if ((j + 1) != HEIGHT)
       {
         fprintf(f, ", ");
       }//if 
