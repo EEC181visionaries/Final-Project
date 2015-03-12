@@ -4,7 +4,7 @@
 
 
 
-
+#define BW_LEVEL	275
 #define READ_IN_ADDR	0xFF200090
 #define READ_OUT_ADDR 	0xFF200080
 #define VGA_DATA1	0xFF200070
@@ -126,7 +126,7 @@ int main(void){
 						if (*read_good)
 						{
 							write_data = *(sdram_data1);
-							if (write_data < 275)
+							if (write_data < BW_LEVEL)
 							{
 								*write_block = 0;
 								image[j][k] = 0;
@@ -155,17 +155,6 @@ int main(void){
 			*sdram_read = 0;
 			*sdram_read = 1;
 			}
-			/*
-			for (k = 0; k < 640; k = k+1)
-			{
-				*clock_gen = 1;
-				*(write_block) = *(sdram_data1);
-				write_block++;
-				*clock_gen = 0;
-			}
-			*sdram_read = 0;
-			*sdram_read = 1;
-			*/
 			*sdram_read = 0;
 			//*sdram_read = *vga_read;
 			*cam_start = 1;
