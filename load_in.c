@@ -4,7 +4,7 @@
 
 
 
-#define BW_LEVEL	275
+#define BW_LEVEL	350
 #define READ_IN_ADDR	0xFF200090
 #define READ_OUT_ADDR 	0xFF200080
 #define VGA_DATA1	0xFF200070
