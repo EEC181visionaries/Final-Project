@@ -48,7 +48,7 @@ int main(void){
 	int L = 0;
 	int snapshot = 0;
 	int test[10000] = {0};
-	*vga_data1 = 0;
+	*vga_data1 = 1;
 	*clock_select = 0;
 	int write_data = 0;
 	int written = 0;
@@ -82,19 +82,26 @@ int main(void){
 	 }
 	 write_block = DDR3_ADDR;
 
-	while(1)
-	{
+	 fflush(stdin);
+	 getchar();
+ 	 fflush(stdin);
+
+
+
 		//*(sdram_read) = *(vga_read);
-		if (i == 10000)
+		for (i = 0; i < 30000; i++)
+		{
+		}
 			snapshot = 1;
 		if (snapshot)
 		{
 			*cam_start = 0;
 			*clock_select = 1;
-
+			*vga_data1 = 0;
+			*vga_data1 = 1;
 			*sdram_read = 1;
 
-			for (k = 0; k < 640; k = k+1)
+			for (k = 0; k < 643; k = k+1)
 			{
 				*clock_gen = 1;
 				*clock_gen = 0;
@@ -114,21 +121,24 @@ int main(void){
 				for (L = 0; L < 4; L = L+1)
 				{
 					*clock_gen = 1;
-					if (*read_good)
+					if (!written)
 					{
-						write_data = *(sdram_data1);
-						if (write_data < 275)
+						if (*read_good)
 						{
-							*write_block = 0;
-							image[j][k] = 0;
+							write_data = *(sdram_data1);
+							if (write_data < 275)
+							{
+								*write_block = 0;
+								image[j][k] = 0;
+							}
+							else
+							{
+								*write_block = 1;
+								image[j][k] = 1;
+							}
+							write_block++;
+							written = 1;
 						}
-						else
-						{
-							*write_block = 1;
-							image[j][k] = 1;
-						}
-						write_block++;
-						written = 1;
 					}
 					*clock_gen = 0;
 				}
@@ -144,7 +154,8 @@ int main(void){
 			write_block++;
 			*sdram_read = 0;
 			*sdram_read = 1;
-			}/*
+			}
+			/*
 			for (k = 0; k < 640; k = k+1)
 			{
 				*clock_gen = 1;
@@ -162,8 +173,7 @@ int main(void){
 			snapshot = 0;
 			printf("Done\n");
 		}
-		i++;
-	}
+
 
 /*
 	while(!(*vga_read)){}
@@ -186,7 +196,7 @@ int main(void){
 //		break;
 
 	*(sdram_read) = 0;
-	printf("Done\n");
+	printf("Final Done\n");
 	return 0;
 }
 
