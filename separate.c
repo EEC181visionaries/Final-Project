@@ -1,6 +1,4 @@
 
-//requires other global variables found in img_alg.c
-
 void separate(){
 
 
@@ -8,7 +6,7 @@ void separate(){
 
 	int e_left = 0, e_right, i_left, i_right; //markers for edge of number, border of image
 	int edge_select = 0; //flag. 0 is look for left, 1 is look for right.
-	int right_select = 0; //flag
+	int right_search = 0; //flag. 0 is do nothing, 1 is look for next number.
 	int start = 0; //starting index position, changes with iteration
 	double sum = 0; //sum of pixel column
 	int place = 0; //place of digit we are examining, changes with iteration
@@ -16,14 +14,15 @@ void separate(){
 
 	i_left = start; //set the left border, it never changes
 	edge_select = 0;
-	right_select = 0;
+	right_search = 0;
 	for(int i = start; i < size_x; i++){
 	
+		sum = 0;
 		for(int j = 0; j < size_y; j++){
 			sum = sum + roi[i][j];	
 		}//calculate the sum of the pixel column
 
-		if(sum > 5 && !right_select){
+		if(sum > 5 && !right_search){
 			if(edge_select){
 				e_right = i;
 			}//if we are looking for the right edge
@@ -33,7 +32,7 @@ void separate(){
 			}
 
 		}//if we first hit an edge, set the left edge and begin advancing the right edge. Currently it is useless to set the right edge.
-		if(sum > 5 && right_select){
+		if(sum > 5 && right_search){
 			i_right = ((i - 1) - (e_right))/2;
 			start = i_right;
 			break;
@@ -41,13 +40,13 @@ void separate(){
 		if(sum < 5){
 			i_right = i;
 			if(edge_select){
-				right_select = 1;
+				right_search = 1;
 			}//if we had hit a number have since exited, begin looking for start of next number
 		}//if we hit a black column, set the new right.
 
 	}
 	if(i == size_x)
-		i_left = size_x;
+		i_right = ((size_x - 1) - (e_right))/2;
 
 	int width = i_left - i_right; //width of digit
 	int height = size_y;  //height of digit
