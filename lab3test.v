@@ -297,20 +297,20 @@ Sdram_Control_4Port	u7	(
 
 							//	FIFO Read Side 1
 						   .RD1_DATA(Read_DATA1),
-				        	.RD1(sdram_read),
+				        	.RD1(controlled_read[read_select]),
 				        	.RD1_ADDR(0),
 							.RD1_MAX_ADDR(640*480),
 							.RD1_LENGTH(256),
-							.RD1_LOAD(!DLY_RST_0),
+							.RD1_LOAD((!DLY_RST_0)|(!vga_read_DATA1)),
 							.RD1_CLK(~controlled_clk[source_select]),
 							
 							//	FIFO Read Side 2
 						   .RD2_DATA(Read_DATA2),
-							.RD2(sdram_read),
+							.RD2(controlled_read[read_select]),
 							.RD2_ADDR(22'h100000), // Memory start address
 							.RD2_MAX_ADDR(22'h100000+640*480),	// Allocate enough space for whole 640 x 480 display
 							.RD2_LENGTH(256),	// 8 bits long data storage
-				        	.RD2_LOAD(!DLY_RST_0),
+				        	.RD2_LOAD((!DLY_RST_0)|(!vga_read_DATA1)),
 							.RD2_CLK(~controlled_clk[source_select]),
 							
 							//	SDRAM Side - Initialize the SDRAM - Can only initialize one per design
