@@ -46,6 +46,8 @@ int main(void)
   //printf("%f\n",image[0][0]);
   //printf("%d\n",black_white[0][0]);
 
+  region();
+
   FILE *f = fopen("image.csv", "w");
   if (f == NULL)
   {
@@ -68,6 +70,7 @@ int main(void)
     }//for j
   }//for i
   fclose(f);
+  
   return 0;
 }
 
@@ -243,6 +246,8 @@ void region(void)
 {
   int prev = 0, val = 0, i, j, prev_val;
   i = HEIGHT/2;
+ 
+  // Left Edge = x
   for(j = 0; j < WIDTH; j +=50)
   {
     prev_val = val;
@@ -253,122 +258,182 @@ void region(void)
     }
     if(prev_val == val && val)
       val = 0;
-    if(val == 3){
+    if(val == 3)
+    {
       val = 0;
       prev_val = 0;
       break;
     }
   }
 
-	for(j = HEIGHT; j > 0; j -=50){
-		prev_val = val;
-		if(black_white[i][j] == 1){
-			y = j;
-			val = val + 1;
-		}
-		if(prev_val == val && val)
-			val = 0;
-		if(val == 3){
-			val = 0;
-			prev_val = 0;
-			break;
-		}
-	}
-	
-	j = (y-x)/2;
-	for(i = 0; i < HEIGHT; i +=50){
-		prev_val = val;
-		if(black_white[i][j] == 1){
-			v = i;
-			val = val + 1;
-		}
-		if(prev_val == val && val)
-			val = 0;
-		if(val == 3){
-			val = 0;
-			prev_val = 0;
-			break;
-		}
-	}
-	for(i = HEIGHT; i > 0; i -=50){
-		prev_val = val;
-		if(black_white[i][j] == 1){
-			w = i;
-			val = val + 1;
-		}
-		if(prev_val == val && val)
-			val = 0;
-		if(val == 3){
-			val = 0;
-			prev_val = 0;
-			break;
-		}
-	}
+  // Right Edge = y
+  for(j = WIDTH; j > 0; j -=50)
+  {
+    prev_val = val;
+    if(black_white[i][j] == 1)
+    {
+      y = j;
+      val = val + 1;
+    }
+    if(prev_val == val && val)
+      val = 0;
+    if(val == 3)
+    {
+      val = 0;
+      prev_val = 0;
+      break;
+    }
+  }
 
-	i = HEIGHT/2;
-	for(j = x; j < y; j+=5){
-		prev_val = val;
-		if(black_white[i][j] == 0){
-			if(val == 0)
-				x = j;
-			val = val + 1;
-		}
-		if(prev_val == val && val)
-			val = 0;
-		if(val == 2){
-			val = 0;
-			prev_val = 0;
-			break;
-		}
-	}
-	for(j = y; j > x; j-=5){
-		prev_val = val;
-		if(black_white[i][j] == 0){
-			if(val == 0)
-				y = j;
-			val = val + 1;
-		}
-		if(prev_val == val && val)
-			val = 0;
-		if(val == 2){
-			val = 0;
-			prev_val = 0;
-			break;
-		}
-	}
+  // Top Edge = v
+  j = WIDTH/2;
+  for(i = 0; i < HEIGHT; i +=50)
+  {
+    prev_val = val;
+    if(black_white[i][j] == 1)
+    {
+      v = i;
+      val = val + 1;
+    }
+    if(prev_val == val && val)
+      val = 0;
+    if(val == 3)
+    {
+      val = 0;
+      prev_val = 0;
+      break;
+    }
+  }
 
-	j = 2*(v-w)/5;
-	for(i = v; i < v; i+=5){
-		prev_val = val;
-		if(black_white[i][j] == 0){
-			if(val == 0)
-				v = i;
-			val = val + 1;
-		}
-		if(prev_val == val && val)
-			val = 0;
-		if(val == 2){
-			val = 0;
-			prev_val = 0;
-			break;
-		}
-	}
-	for(i = w; i > v; i-=5){
-		prev_val = val;
-		if(black_white[i][j] == 0){
-			if(val == 0)
-				w = i;
-			val = val + 1;
-		}
-		if(prev_val == val && val)
-			val = 0;
-		if(val == 2){
-			val = 0;
-			prev_val = 0;
-			break;
-		}
-	}
-	
+  // Bottom Edge = w
+  for(i = HEIGHT; i > 0; i -=50)
+  {
+    prev_val = val;
+    if(black_white[i][j] == 1)
+    {
+      w = i;
+      val = val + 1;
+    }//if bw = 1
+    if(prev_val == val && val)
+      val = 0;
+    if(val == 3)
+    {
+      val = 0;
+      prev_val = 0;
+      break;
+    }
+  }//for i
+
+// Print LROI
+  printf("%d, %d, %d, %d\n", x, y, v, w);
+  FILE *fp = fopen("lroi.csv", "w");
+
+  if (fp == NULL)
+  {
+    printf("Error opening file!\n");
+    exit(1);
+  }
+
+  for(i = v; i < w; i++)
+  {
+    for(j = x; j < y; j++)
+    {
+      fprintf(fp, "%d",black_white[i][j]);
+      if ((j + 1) != y)
+      {
+        fprintf(fp, ", ");
+      }//if 
+      else
+        fprintf(fp, "\n");
+    }
+  }
+  fclose(fp);
+// end print LROI
+
+
+// Get new x
+  i = ((w-v)/2 + v);
+  int temp = (x + ((y-x)/2));
+  for(j = x; j < y; j+=5)
+  {
+    prev_val = val;
+    if(black_white[i][j] == 0)
+    {
+      if(val == 0)
+        x = j;
+      val = val + 1;
+    }
+    if(prev_val == val && val)
+      val = 0;
+    if(val == 2)
+    {
+      val = 0;
+      prev_val = 0;
+      break;
+    }
+  }
+
+// Get new y
+  for(j = y; j > x; j-=8)
+  {
+    prev_val = val;
+    if(black_white[i][j] == 0)
+    {
+      if(val == 0)
+        y = j;
+      val = val + 1;
+    }
+    if(prev_val == val && val)
+      val = 0;
+    if(val == 5)
+    {
+      val = 0;
+      prev_val = 0;
+      break;
+    }
+  }
+
+// Get new v
+  j = temp;
+  for(i = v; i < w; i+=5)
+  {
+    prev_val = val;printf("run\n");
+    if(black_white[i][j] == 0)
+    {
+      if(val == 0)
+        v = i;
+      val = val + 1;
+    }
+    if(prev_val == val && val)
+      val = 0;
+    if(val == 2)
+    {
+      val = 0;
+      prev_val = 0;
+      break;
+    }
+  }
+
+// Get new w
+  for(i = w; i > v; i-=5)
+  {
+    prev_val = val;
+    if(black_white[i][j] == 0)
+    {
+      if(val == 0)
+        w = i;
+      val = val + 1;
+    }
+    if(prev_val == val && val)
+      val = 0;
+    if(val == 2)
+    {
+      val = 0;
+      prev_val = 0;
+      break;
+    }
+  }
+	/*
 	x += 3;
 	y -= 3;
 
@@ -403,31 +468,49 @@ void region(void)
 		w = lb;
 	else
 		w = rb;
+*/
 
-	int tempx = 0, tempy = 0;
-	for(i = w; i < v; i++){
-		for(j = x; j < y; j++){
-			roi[tempx][tempy] = black_white[i][j];
-			tempy++;
-		}
-		tempx++;
-	}
-	size_x = tempx;
-	size_y = tempy;
+// Move region of interest into new array
+  int tempx = 0, tempy = 0;
+  for(i = v; i < w; i++)
+  {
+    tempy = 0;
+    for(j = x; j < y; j++)
+    {
+      roi[tempx][tempy] = black_white[i][j];
+      tempy++;
+      //printf("%d\n",roi[tempx][tempy]); 
+    }
+    tempx++;
+  }
+  size_x = tempx;
+  size_y = tempy;
+  printf("%d, %d\n", size_x, size_y);
 
+// Prints out region of interest
+  printf("%d, %d, %d, %d\n", x, y, v, w);
+  fp = fopen("roi.csv", "w");
 
-	FILE *fp = fopen("roi.csv", "w");
+  if (fp == NULL)
+  {
+    printf("Error opening file!\n");
+    exit(1);
+  }
 
-	for(i = 0; i < size_x; i++){
-		for(j = 0; j < size_y; j++){
-			fprintf(fp, "%d",roi[i][j]);
-			if(j < size_y - 1)
-				fprintf(fp, ",");
-		}
-		fprintf(fp, "\n");
-
-	}
-	fclose(fp);
+  for(i = 0; i < size_x; i++)
+  {
+    for(j = 0; j < size_y; j++)
+    {
+      fprintf(fp, "%d",roi[i][j]);
+      if ((j + 1) != size_y)
+      {
+        fprintf(fp, ", ");
+      }//if 
+      else
+        fprintf(fp, "\n");
+    }
+  }
+  fclose(fp);
 
 }//region()
 
