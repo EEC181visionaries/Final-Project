@@ -25,7 +25,7 @@ int main(void){
 	volatile int * (sdram_data1) = (int *) SDRAM_DATA1;	//Input
 	volatile int * (sdram_data2) = (int *) SDRAM_DATA2;	//Input
 	volatile int * (sdram_read) = (int *) READ_OUT_ADDR;	//Output
-	volatile int * (vga_ctrl_clk) = (int *) VGA_CLK_IN;	//Input
+	volatile int * (read_good) = (int *) VGA_CLK_IN;	//Input
 	volatile int * (vga_read) = (int *) READ_IN_ADDR; //Input
 	volatile int * (vga_data1) = (int *) VGA_DATA1;	//Output
 	volatile int * (vga_data2) = (int *) VGA_DATA2;	//Output
@@ -44,10 +44,16 @@ int main(void){
 	int gray = 0;
 	int i = 0;
 	int j = 0;
+	int k = 0;
+	int L = 0;
 	int snapshot = 0;
 	int test[10000] = {0};
-	
+	*vga_data1 = 0;
 	*clock_select = 0;
+	int write_data = 0;
+	int written = 0;
+	int image[480][640];
+
 /*
 	printf("Press enter to start\n");
 	fflush(stdin);
@@ -69,34 +75,89 @@ int main(void){
 		gray = .21 * red + .72 * green + .07 * blue;
 	}
 	*/
+	 for (j = 0; j < (307200); j = j+1)	// 640x480
+	 {
+		 *(write_block) = 0x7FFF7FFF;//*(sdram_data1);
+				write_block++;
+	 }
+	 write_block = DDR3_ADDR;
 
 	while(1)
 	{
-		*(sdram_read) = *(vga_read);
+		//*(sdram_read) = *(vga_read);
 		if (i == 10000)
 			snapshot = 1;
 		if (snapshot)
 		{
+			*cam_start = 0;
 			*clock_select = 1;
-			while (*vga_read)
+
+			*sdram_read = 1;
+
+			for (k = 0; k < 640; k = k+1)
 			{
 				*clock_gen = 1;
 				*clock_gen = 0;
-			}
-			while(!(*vga_read))
-			{
+				*clock_gen = 1;
+				*clock_gen = 0;
+				*clock_gen = 1;
+				*clock_gen = 0;
 				*clock_gen = 1;
 				*clock_gen = 0;
 			}
-			while (*vga_read)	// this only generates 48 writes for 1 row, therefore only 24 pixels of data per row
+
+
+			for (j = 0; j < 480; j = j+1)
+			{
+			for (k = 0; k < 640; k = k+1)
+			{
+				for (L = 0; L < 4; L = L+1)
+				{
+					*clock_gen = 1;
+					if (*read_good)
+					{
+						write_data = *(sdram_data1);
+						if (write_data < 275)
+						{
+							*write_block = 0;
+							image[j][k] = 0;
+						}
+						else
+						{
+							*write_block = 1;
+							image[j][k] = 1;
+						}
+						write_block++;
+						written = 1;
+					}
+					*clock_gen = 0;
+				}
+				written = 0;
+			}
+			*(write_block) = 0x7FFF7FFF;
+			write_block++;
+			*(write_block) = 0x7FFF7FFF;
+			write_block++;
+			*(write_block) = 0x7FFF7FFF;
+			write_block++;
+			*(write_block) = 0x7FFF7FFF;
+			write_block++;
+			*sdram_read = 0;
+			*sdram_read = 1;
+			}/*
+			for (k = 0; k < 640; k = k+1)
 			{
 				*clock_gen = 1;
 				*(write_block) = *(sdram_data1);
 				write_block++;
-				*(write_block) = *(sdram_data2);
-				write_block++;
 				*clock_gen = 0;
 			}
+			*sdram_read = 0;
+			*sdram_read = 1;
+			*/
+			*sdram_read = 0;
+			//*sdram_read = *vga_read;
+			*cam_start = 1;
 			*clock_select = 0;
 			snapshot = 0;
 			printf("Done\n");
