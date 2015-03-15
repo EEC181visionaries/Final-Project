@@ -185,6 +185,14 @@ int main(void){
 //		break;
 
 	*(sdram_read) = 0;
+	
+	for (i = 0; i < 480; i = i+1)
+	{
+		for (j = 0; j<640; j=j+1)
+			printf("%d\t",image[i][j]);
+		printf("\n");
+	}
+	
 	printf("Final Done\n");
 	return 0;
 }
