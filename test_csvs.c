@@ -6,8 +6,8 @@
 #include<math.h>
 
 // Definitions
-#define WIDTH 2448
-#define HEIGHT 3264
+#define WIDTH 640
+#define HEIGHT 480
 #define DDR3_ADDR 0x00000000	// Address of SDRAM
 
 // Declare global variables
@@ -22,11 +22,12 @@ int read_data1[2448][3264];
 int read_data2[2448][3264];
 
 // Computing ROI and Separate Images
-double image[WIDTH][HEIGHT];
+double image[HEIGHT][WIDTH];
 int w, x, y, v, lt, lb, rt, rb;
-int black_white[WIDTH][HEIGHT];
-int roi[WIDTH][HEIGHT];
-int digit[WIDTH][HEIGHT];
+int black_white[HEIGHT][WIDTH];
+int roi[HEIGHT][WIDTH];
+int digit[HEIGHT][WIDTH];
+int data[784];
 int size_x = 0, size_y = 0;
 
 // List of functions
@@ -35,18 +36,25 @@ void read_nn(void);
 void gray_bw(void);
 void gray_bw2(void);
 void region(void);
+void resize(void);
+int recognizer(void);
 
 int main(void)
 {
+  int M;
+  read_nn();  
   read_pic();	// Reads files correctly
-  //printf("%d\n",read_data1[0][0]);
+  //printf("%d\n%d\n",black_white[0][0], black_white[0][240]);
   //printf("%d\n",read_data2[0][0]);
 
-  gray_bw2();	// 
+  //gray_bw2();	// 
   //printf("%f\n",image[0][0]);
   //printf("%d\n",black_white[0][0]);
 
   region();
+  resize();
+  M = recognizer();
+  printf("Guessed %d\n",M);
 
   FILE *f = fopen("image.csv", "w");
   if (f == NULL)
@@ -56,12 +64,12 @@ int main(void)
   }
 
   int i, j;
-  for (i = 0; i < WIDTH; i++)
+  for (i = 0; i < HEIGHT; i++)
   {
-    for (j = 0; j < HEIGHT; j++)
+    for (j = 0; j < WIDTH; j++)
     {
       fprintf(f, "%d", black_white[i][j]);
-      if ((j + 1) != HEIGHT)
+      if ((j + 1) != WIDTH)
       {
         fprintf(f, ", ");
       }//if 
@@ -70,6 +78,8 @@ int main(void)
     }//for j
   }//for i
   fclose(f);
+
+
   
   return 0;
 }
@@ -83,18 +93,18 @@ void read_pic(void)
   FILE* fp;
   int i,j;
 
-  // Open pic1_1.csv
-  fp = fopen("pic1_1.csv","r");
-  for(i = 0; i < 2448; i++)
+  // Open 7.csv (Already in bw.)
+  fp = fopen("7.txt","r");
+  for(i = 0; i < HEIGHT; i++)
   {
-    for(j = 0; j < 3264; j++)
+    for(j = 0; j < WIDTH; j++)
     {
-      fscanf(fp, "%d", &(read_data1[i][j]));
+      fscanf(fp, "%d", &(black_white[i][j]));
     }//for j
   }//for i
   fclose(fp);
 
-  // Open pic1_2.csv
+/*  // Open pic1_2.csv
   fp = fopen("pic1_2.csv","r");
   for(i = 0; i < 2448; i++)
   {
@@ -104,6 +114,7 @@ void read_pic(void)
     }//for j
   }//for i
   fclose(fp);
+*/
 }
 
 
@@ -186,9 +197,9 @@ void gray_bw(void)
   int i,j, data1,data2, red, green, blue, gray;
   volatile char * write_block = (int *) DDR3_ADDR;
 
-  for(i = 0; i < WIDTH; i++)
+  for(i = 0; i < HEIGHT; i++)
   {
-    for(j = 0; j < HEIGHT; j++)
+    for(j = 0; j < WIDTH; j++)
     {
       image[i][j] = 0;
       black_white[i][j] = 0;
@@ -219,9 +230,9 @@ void gray_bw2(void)
   int i, j, red, green, blue, gray;
 //  FILE *fp = fopen("pic.csv", "r");
 	
-  for(i = 0; i < WIDTH; i++)
+  for(i = 0; i < HEIGHT; i++)
   {
-    for(j = 0; j < HEIGHT; j++)
+    for(j = 0; j < WIDTH; j++)
     {
       image[i][j] = 0;
       black_white[i][j] = 0;
@@ -248,7 +259,7 @@ void region(void)
   i = HEIGHT/2;
  
   // Left Edge = x
-  for(j = 0; j < WIDTH; j +=50)
+  for(j = 0; j < WIDTH; j +=25)
   {
     prev_val = val;
     if(black_white[i][j] == 1)
@@ -267,7 +278,7 @@ void region(void)
   }
 
   // Right Edge = y
-  for(j = WIDTH; j > 0; j -=50)
+  for(j = WIDTH; j > 0; j -=25)
   {
     prev_val = val;
     if(black_white[i][j] == 1)
@@ -287,7 +298,7 @@ void region(void)
 
   // Top Edge = v
   j = WIDTH/2;
-  for(i = 0; i < HEIGHT; i +=50)
+  for(i = 0; i < HEIGHT; i +=25)
   {
     prev_val = val;
     if(black_white[i][j] == 1)
@@ -306,7 +317,7 @@ void region(void)
   }
 
   // Bottom Edge = w
-  for(i = HEIGHT; i > 0; i -=50)
+  for(i = HEIGHT; i > 0; i -=25)
   {
     prev_val = val;
     if(black_white[i][j] == 1)
@@ -397,7 +408,7 @@ void region(void)
   j = temp;
   for(i = v; i < w; i+=5)
   {
-    prev_val = val;printf("run\n");
+    prev_val = val;//printf("run\n");
     if(black_white[i][j] == 0)
     {
       if(val == 0)
@@ -511,18 +522,171 @@ void region(void)
     }
   }
   fclose(fp);
-
 }//region()
 
 
 
+void resize(void){
+	FILE *fp;
+	int digits[size_y][size_x];
+	int i,j;
+	int x_pixels = size_x/28;
+	int y_pixels = size_y/28; 
+	int x_start = (size_x%28)/2;
+	int x_end = size_x - (size_x%28)/2;
+	int y_start = (size_y%28)/2;
+	int y_end = size_y - (size_y%28)/2;
+	int k, l;
+	double average;
+	double square = x_pixels * y_pixels;
+	int digitsx = 0, digitsy = 0;//These are the pixels of the scaled down digit		
+
+	//printf("%d %d %d %d %d %d\n", x_pixels, y_pixels, x_start, x_end, y_start, y_end);
+	for(i = x_start; i < x_end; i += x_pixels){
+		digitsy = 0;
+		for(j = y_start; j < y_end; j += y_pixels){
+			average = 0;
+			for(k = 0; k < x_pixels; k++){
+				for(l = 0; l < y_pixels; l++){
+					average += roi[i + k][j + l];
+				}//Calculate the sum of the square
+			}
+			average = average / square; //Get the average density
+			if(average >= 0.5)
+				digits[digitsx][digitsy] = 1;
+			else
+				digits[digitsx][digitsy] = 0;
+			digitsy++;
+		}
+		digitsx++;
+		
+	}
+
+	  fp = fopen("resize.csv", "w");
+
+  if (fp == NULL)
+  {
+    printf("Error opening file!\n");
+    exit(1);
+  }
+
+  k = 0;
+  for(i = 0; i < 28; i++)
+  {
+    for(j = 0; j < 28; j++)
+    {
+      fprintf(fp, "%d",digits[i][j]);
+      data[k] = digits[j][i];
+      k++;
+      if ((j + 1) != 28)
+      {
+        fprintf(fp, ", ");
+      }//if 
+      else
+        fprintf(fp, "\n");
+    }
+  }
+  fclose(fp);
+
+}
+
+int recognizer(void)
+{
+  long double Vb1[200], Vb2[200], Vb3[10]; // array[row][col]
+  int M = 0;
+  int i,j;
+  long double sum = 0;
+  
+  
+  // Vb1 = finalW1L1*data;
+  for (i = 0; i < 200; i++)
+  {
+    for (j = 0; j < 784; j++)
+    {
+      sum = sum + finalW1L1[i][j] * data[j];
+    } // Matrix Multiplication
+    Vb1[i] = sum;
+    sum = 0;
+  } // Product into new Matrix
+  
+  
+  //Vb1 = Vb1 + finalB1L1;
+  for (i = 0; i < 200; i ++)
+  {
+    Vb1[i] = Vb1[i] + finalB1L1[i];
+  } // Matrix Addition
+  
+  
+  //Vb1 = sigmf(Vb1,[1 0]);
+  for (i = 0; i < 200; i++)
+  {
+    Vb1[i] = 1/(1+exp(-Vb1[i]));
+  } // Sigmoid
+  
+  
+  //Vb1 = finalW1L2*Vb1;
+  for (i = 0; i < 200; i++)
+  {
+    for (j = 0; j < 200; j++)
+    {
+      sum = sum + finalW1L2[i][j] * Vb1[j];
+    } // Matrix Multiplication
+    Vb2[i] = sum;
+    sum = 0;
+  } // Product into old Matrix
+  
+  
+  //Vb1 = Vb1 + finalB1L2;
+  for (i = 0; i < 200; i ++)
+  {
+    Vb2[i] = Vb2[i] + finalB1L2[i];
+  } // Matrix Addition
 
 
+  //Vb1 = sigmf(Vb1,[1 0]);
+  for (i = 0; i < 200; i++)
+  {
+    Vb2[i] = 1/(1+exp(-Vb2[i]));
+  } // Sigmoid
+  
+  
+  //Vb1 = finalSoftmaxTheta*Vb1;          finalSoftmaxTheta[10][200]
+  for (i = 0; i < 10; i++)
+  {
+    for (j = 0; j < 200; j++)
+    {
+      sum = sum + finalSoftmaxTheta[i][j]*Vb2[j];
+    } //
+    Vb3[i] = sum;
+    sum = 0;
+  } // 
+  
+ 
+  //M = find(Vb1==max(Vb1));
+  double max = 0;
+  for (i = 0; i < 10; i++)
+  {
+    if (max < Vb3[i])
+    {
+      max = Vb3[i];
+      M = i + 1;
+    }
+  } // Finding Max Value
+  
+  
+  // Check for Zero
+  //if(M == 10)
+  //  M = 0;
+  //end
+  if (M == 10)
+  {
+    M = 0;
+  } // Check for zero
 
 
-
-
-
+  //output = M;
+    return M;
+}
 
 
 
