@@ -1,3 +1,6 @@
+// Team Visionaries
+// Philip Chan, Jessica Ma, Chan Lu
+// Project Demo
 
 module lab3test(
 	////////////////////////////////////
@@ -122,10 +125,13 @@ reg 		[16:0]		gray;					// Converts VGA color to grayscale
 wire		[1:0]		controlled_clk;
 wire					HPS_CTRLING_CLK;
 wire 		[1:0]		controlled_read;
+// muxed clock
 assign controlled_clk[0] = VGA_CTRL_CLK;
 assign controlled_clk[1] = read_clock;
+// muxed read
 assign controlled_read[1] = vga_read;
 assign controlled_read[0] = sdram_read;
+
 wire					read_select;
 assign read_select = start_cam;
 //=======================================================
@@ -166,8 +172,7 @@ assign	VGA_R		=	oVGA_R[9:2];
 assign	VGA_G		=	oVGA_G[9:2];
 assign	VGA_B		=	oVGA_B[9:2];
 
-//assign sdram_read_DATA1 = Read_DATA1;
-//assign sdram_read_DATA2 = Read_DATA2;
+
 
 always@(posedge CCD_PIXCLK)
 begin
@@ -176,6 +181,7 @@ begin
 	rCCD_FVAL	<=	CCD_FVAL;
 end
 
+// Unused here
 reg		[31:0]	clock_test;
 always@(posedge controlled_clk[source_select])
 begin
@@ -194,11 +200,13 @@ end
 wire					read_clock;
 reg		[2:0]		read_clock_reg;
 reg					read_good;
+
+// used to prevent switch bounce. read_clock is 4x as slow as HPS_CTRLING_CLK
 assign read_clock = read_clock_reg[1];
 always@(posedge HPS_CTRLING_CLK)
 begin
 	read_clock_reg = read_clock_reg + 1;
-	read_good <= read_clock_reg[1];
+	read_good = read_clock_reg[1];
 end
 
 
@@ -240,7 +248,7 @@ CCD_Capture			u3	(
 							.iDATA(rCCD_DATA),
 							.iFVAL(rCCD_FVAL),
 							.iLVAL(rCCD_LVAL),
-							.iSTART(!KEY[3]|start_cam),
+							.iSTART(!KEY[3]|start_cam),// software controlled start and stop
 							.iEND(!KEY[2]|stop_cam),
 							.iCLK(CCD_PIXCLK),
 							.iRST(DLY_RST_2)
@@ -296,16 +304,16 @@ Sdram_Control_4Port	u7	(
 							.WR2_CLK(~CCD_PIXCLK),
 
 							//	FIFO Read Side 1
-						   .RD1_DATA(Read_DATA1),
-				        	.RD1(controlled_read[read_select]),
+						   .RD1_DATA(Read_DATA1),	// goes into hps
+				        	.RD1(controlled_read[read_select]),	// hps controlled or vga controlled
 				        	.RD1_ADDR(0),
 							.RD1_MAX_ADDR(640*480),
 							.RD1_LENGTH(256),
-							.RD1_LOAD((!DLY_RST_0)|(!vga_read_DATA1)),
+							.RD1_LOAD((!DLY_RST_0)|(!vga_read_DATA1)),	// used to reset sdram
 							.RD1_CLK(~controlled_clk[source_select]),
 							
 							//	FIFO Read Side 2
-						   .RD2_DATA(Read_DATA2),
+						   .RD2_DATA(Read_DATA2),	// is unused
 							.RD2(controlled_read[read_select]),
 							.RD2_ADDR(22'h100000), // Memory start address
 							.RD2_MAX_ADDR(22'h100000+640*480),	// Allocate enough space for whole 640 x 480 display
@@ -362,13 +370,21 @@ I2C_CCD_Config 		u8	(
         .memory_mem_odt     (HPS_DDR3_ODT),     //          .mem_odt
         .memory_mem_dm      (HPS_DDR3_DM),      //          .mem_dm
         .memory_oct_rzqin   (HPS_DDR3_RZQ),   //          .oct_rzqin
+		  
+		  
         .hps_read_out_export   (sdram_read),      //        hps_read_out.export
         .hps_read_in_export    (vga_read),     //      hps_read_out_1.export
+		  // Repurposed as reset signal
 		  .vga_data1_export         (vga_read_DATA1),         //           vga_data1.export
         .vga_data2_export         (vga_read_DATA2),         //           vga_data2.export
+		  
+		  // Reading in values as grayscale into hps
         .sdram_data1_export       ({6'b000000,Read_DATA1[9:0]}),       //         sdram_data1.export
+		  // unused
         .sdram_data2_export       (sdram_read_DATA2),        //         sdram_data2.export
+		  // not actually a clock anymore, repurposed
 		  .vga_clk_in_export        (read_good),        //          vga_clk_in.export
+		  
         .cam_start_export         (start_cam),        //           cam_start.export
 		  .source_select_export		(source_select),
 		  .clock_tester_export		(clock_test),
