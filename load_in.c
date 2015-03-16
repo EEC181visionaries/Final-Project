@@ -3,8 +3,9 @@
 
 
 
-
+// used to determine what is white and what is black
 #define BW_LEVEL	350
+
 #define READ_IN_ADDR	0xFF200090
 #define READ_OUT_ADDR 	0xFF200080
 #define VGA_DATA1	0xFF200070
@@ -54,27 +55,13 @@ int main(void){
 	int written = 0;
 	int image[480][640];
 
-/*
-	printf("Press enter to start\n");
-	fflush(stdin);
-	getchar();
-*/
+
+
 	*cam_start = 1;
 
-	printf("starting...\n");
-	/*
-	for (i = 0; i < 9999; i++)
-	{
-	}
-	*cam_start = 0;
-	for (i = 0; i < 640*480; i++)
-	{
-		red = *(iRead_Data2) & 1023; // red = iRead_Data2[9:0] ?1023?
-		green = (*(iRead_Data1) & 31744)/32 + (*(iRead_Data2) & 31744)/1024; // green = {iRead_Data1[14:10], iRead_Data2[14:10]}
-		blue = *(iRead_Data1) & 1023;// blue = iRead_Data1[9:0]
-		gray = .21 * red + .72 * green + .07 * blue;
-	}
-	*/
+	printf("Press enter to start\n");
+
+	// fill blocks with known value for debugging. Not needed in the end
 	 for (j = 0; j < (307200); j = j+1)	// 640x480
 	 {
 		 *(write_block) = 0x7FFF7FFF;//*(sdram_data1);
@@ -88,22 +75,23 @@ int main(void){
 
 
 
-		//*(sdram_read) = *(vga_read);
+		// delay before capture
 		for (i = 0; i < 30000; i++)
 		{
 		}
 			snapshot = 1;
 		if (snapshot)
 		{
-			*cam_start = 0;
-			*clock_select = 1;
-			*vga_data1 = 0;
-			*vga_data1 = 1;
-			*sdram_read = 1;
+			*cam_start = 0;	// pause camera
+			*clock_select = 1;	// choose custom clock from hps
+			*vga_data1 = 0;	// reset sdram
+			*vga_data1 = 1;	
+			*sdram_read = 1;	// set read request to high
 
+			// clear out first horizontal row, it is all black
 			for (k = 0; k < 643; k = k+1)
 			{
-				*clock_gen = 1;
+				*clock_gen = 1;	// generate 4 clock cycles to move slower clock 1 cycle
 				*clock_gen = 0;
 				*clock_gen = 1;
 				*clock_gen = 0;
@@ -113,20 +101,20 @@ int main(void){
 				*clock_gen = 0;
 			}
 
-
+			// begin reading in data
 			for (j = 0; j < 480; j = j+1)
 			{
 			for (k = 0; k < 640; k = k+1)
 			{
 				for (L = 0; L < 4; L = L+1)
 				{
-					*clock_gen = 1;
+					*clock_gen = 1;	// generate 4 clock cycles, checking each cycle
 					if (!written)
 					{
-						if (*read_good)
+						if (*read_good)	// take in data from verilog to read block (not sure if needed)
 						{
 							write_data = *(sdram_data1);
-							if (write_data < BW_LEVEL)
+							if (write_data < BW_LEVEL)	// write black or white
 							{
 								*write_block = 0;
 								image[j][k] = 0;
@@ -144,6 +132,7 @@ int main(void){
 				}
 				written = 0;
 			}
+			// write blocks to separate each row to debug in memory
 			*(write_block) = 0x7FFF7FFF;
 			write_block++;
 			*(write_block) = 0x7FFF7FFF;
@@ -163,36 +152,21 @@ int main(void){
 			printf("Done\n");
 		}
 
+		// used to output memory values to text to copy onto text file
+		
+		for (j = 0; j < 480; j = j+1)
+		{
+			for (k = 0; k < 640; k=k+1)
+			{
+				printf("%d\t",image[j][k]);
+			}
+			printf("\n");
+		}
 
-/*
-	while(!(*vga_read)){}
-	while(*vga_read){
-		*(sdram_read) = 1;
-		*(write_block) = *(sdram_data1);
-		*(vga_data1) = *(sdram_data1);
-		write_block++;
-		*(write_block) = *(sdram_data2);
-		*(vga_data2) = *(sdram_data2);
-		write_block++;
-		while((*(vga_ctrl_clk))){}
-		*(sdram_read) = *(vga_read);
-		while(!(*(vga_ctrl_clk))){}			
-	}//while
-*/
-//	*(sdram_read) = *(vga_read);
-//	write_block = DDR3_ADDR;
-//	if (write_block == DDR3_ADDR+1000)
-//		break;
+		
+
 
 	*(sdram_read) = 0;
-	
-	for (i = 0; i < 480; i = i+1)
-	{
-		for (j = 0; j<640; j=j+1)
-			printf("%d\t",image[i][j]);
-		printf("\n");
-	}
-	
 	printf("Final Done\n");
 	return 0;
 }
