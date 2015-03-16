@@ -1,3 +1,8 @@
+// EEC181 Demo
+// Team Visionaries
+// Philip Chan, Jessica Ma, Chan Lu
+
+
 #include <stdio.h>
 
 
