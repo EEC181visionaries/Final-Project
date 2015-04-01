@@ -14,7 +14,7 @@
 // Definitions
 #define WIDTH 640
 #define HEIGHT 480
-#define BW_LEVEL  350
+#define BW_LEVEL  130
 
 // Registers
 #define READ_IN_ADDR  0xFF200090
@@ -50,6 +50,7 @@ int main(void)
   volatile int * (sdram_read) = (int *) READ_OUT_ADDR;  //Output
   volatile int * (read_good) = (int *) VGA_CLK_IN;  //Input
   volatile int * (vga_data1) = (int *) VGA_DATA1; //Output
+  volatile int * (vga_data2) = (int *) VGA_DATA2; //Output
   volatile int *(clock_select) = (int *) SOURCE_SELECT;
   volatile int *(clock_gen) = (int *) CONTROLLING_CLK;
   int M;
@@ -59,6 +60,7 @@ int main(void)
   int L = 0;
   int snapshot = 0;
   *vga_data1 = 1;
+  *vga_data2 = 1;
   *clock_select = 0;
   int write_data = 0;
   int written = 0;
@@ -135,6 +137,12 @@ while(1){
       *sdram_read = 1;
       }
       *sdram_read = 0;
+
+      *vga_data1 = 0;
+      *vga_data2 = 0;
+      *vga_data1 = 1;
+      *vga_data2 = 1;
+
       *cam_start = 1;
       *clock_select = 0;
       snapshot = 0;
