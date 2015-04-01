@@ -194,7 +194,7 @@ end
 // gray = (27*red + 91*green + 9*blue)/127
 always@(posedge controlled_clk[source_select])
 begin
-	gray <= sCCD_R*27 + sCCD_G*91 + sCCD_B*9;
+	gray <= sCCD_R[11:2]*27 + sCCD_G[11:2]*91 + sCCD_B[11:2]*9;
 end
 
 wire					read_clock;
@@ -228,7 +228,7 @@ VGA_Controller		u1	(	//	Host Side
 							.oVGA_BLANK(VGA_BLANK_N),
 							//	Control Signal
 							.iCLK(controlled_clk[source_select]),
-							.iRST_N(DLY_RST_2)
+							.iRST_N(DLY_RST_2&vga_read_DATA2[0])
 							);
 
 Reset_Delay			u2	(
