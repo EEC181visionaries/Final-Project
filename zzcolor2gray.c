@@ -1,5 +1,7 @@
-// color2gray3.c
-// takes rgb image and returns gray image
+// zzcolor2gray.c
+// input - FPGA
+// output - FPGA
+// Takes in an rgb image and returns gray image
 
 //#include <stdio.h>
 //#include <string.h>
