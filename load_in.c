@@ -40,6 +40,8 @@ int main(void){
 	volatile int * write_block;
 	volatile int *(clock_select) = (int *) SOURCE_SELECT;
 	volatile int *(clock_gen) = (int *) CONTROLLING_CLK;
+	*vga_data1 = 1;
+	*vga_data2 = 1;
 	//int start = 0;
 	write_block = DDR3_ADDR;
 	int red = 0;
@@ -60,9 +62,11 @@ int main(void){
 	int written = 0;
 	int image[480][640];
 
-
+	
 
 	*cam_start = 1;
+	//*vga_data1 = 0;	// reset sdram
+	//*vga_data1 = 1;	
 
 	printf("Press enter to start\n");
 
@@ -73,7 +77,7 @@ int main(void){
 				write_block++;
 	 }
 	 write_block = DDR3_ADDR;
-
+	 *vga_data1 = 1;
 	 fflush(stdin);
 	 getchar();
  	 fflush(stdin);
@@ -119,6 +123,10 @@ int main(void){
 						if (*read_good)	// take in data from verilog to read block (not sure if needed)
 						{
 							write_data = *(sdram_data1);
+							*write_block = write_data;
+							image[j][k] = write_data;
+
+							/*
 							if (write_data < BW_LEVEL)	// write black or white
 							{
 								*write_block = 0;
@@ -128,7 +136,8 @@ int main(void){
 							{
 								*write_block = 1;
 								image[j][k] = 1;
-							}
+							}*/
+
 							write_block++;
 							written = 1;
 						}
@@ -151,6 +160,10 @@ int main(void){
 			}
 			*sdram_read = 0;
 			//*sdram_read = *vga_read;
+			*vga_data1 = 0;	// reset sdram
+			*vga_data2 = 0;
+			*vga_data1 = 1;
+			*vga_data2 = 1;
 			*cam_start = 1;
 			*clock_select = 0;
 			snapshot = 0;
@@ -158,7 +171,7 @@ int main(void){
 		}
 
 		// used to output memory values to text to copy onto text file
-		
+		/*
 		for (j = 0; j < 480; j = j+1)
 		{
 			for (k = 0; k < 640; k=k+1)
@@ -167,7 +180,7 @@ int main(void){
 			}
 			printf("\n");
 		}
-
+		*/
 		
 
 
