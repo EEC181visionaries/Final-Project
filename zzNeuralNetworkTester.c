@@ -1,4 +1,4 @@
-// _NeuralNetworkTester.c - NOT FPGA CODE BUT C CODE
+// zzNeuralNetworkTester.c - NOT FPGA CODE BUT C CODE
 //           Reads in an image file and prints the
 //           guessed number on the terminal.
 //           Instead of reading in csv files for the
