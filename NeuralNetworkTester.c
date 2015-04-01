@@ -1,5 +1,9 @@
-// combo.c - Reads in a photo and prints out data
-//           using header files
+// NeuralNetworkTester.c - NOT FPGA CODE BUT C CODE
+//           Reads in an image file and prints the
+//           guessed number on the terminal.
+//           Instead of reading in csv files for the
+//           neural network, we read c files with the
+//           same content.
 
 // Libraries
 #include<stdlib.h>
@@ -18,7 +22,7 @@
 #define DDR3_ADDR 0x00000000	// Address of SDRAM
 
 // Declare global variables
-// Reading in files
+// Reading in csv files
 //long double finalB1L1[200];
 //long double finalB1L2[200];
 //long double finalW1L1[200][784];
@@ -35,23 +39,25 @@ int data[784];
 int size_x = 0, size_y = 0;
 
 // List of functions
-void read_pic(void);
-//void read_nn(void);
-void region(void);
+void read_pic(void);  //Reads in an image in csv format
+//void read_nn(void);  //Reads in NN.mat parameters in csv format
+void region(void); 
 void resize(void);
 int recognizer(void);
 
 int main(void)
 {
   int M;
-  //read_nn();  
-  read_pic();
+  //read_nn();  //Reads in values from the csv files
+  read_pic();  //Reads in a csv file
 
   region();
   resize();
   M = recognizer();
   printf("Guessed %d\n",M);
 
+// Writes new image into csv file
+// Used to view image in matlab
   FILE *f = fopen("image.csv", "w");
   if (f == NULL)
   {
@@ -74,9 +80,6 @@ int main(void)
     }//for j
   }//for i
   fclose(f);
-
-
-  
   return 0;
 }
 
@@ -99,7 +102,6 @@ void read_pic(void)
     }//for j
   }//for i
   fclose(fp);
-
 }
 
 
@@ -507,7 +509,6 @@ void resize(void){
     }
   }
   fclose(fp);
-
 }
 
 int recognizer(void)
@@ -602,10 +603,7 @@ int recognizer(void)
   {
     M = 0;
   } // Check for zero
-
-
-  //output = M;
-    return M;
+  return M;  //output = M;
 }
 
 
