@@ -1,3 +1,6 @@
+// zzrecognizer.c - Pass the image through neural network to determine number.
+//                  Converted .m to .c recognizer code.
+
 #include <stdio.h>
 
 int recognizer(double finalB1L1[200][1], double finalB1L2[200][1], double finalW1L1[200][784], double finalW1L2[200][200], double finalSoftmaxTheta[10][200], int data[784][1])
