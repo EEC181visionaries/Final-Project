@@ -1,6 +1,6 @@
 // Team Visionaries
 // Philip Chan, Jessica Ma, Chan Lu
-// Project Demo
+// demo.v - main verilog code that connects all the modules together
 
 module lab3test(
 	////////////////////////////////////
