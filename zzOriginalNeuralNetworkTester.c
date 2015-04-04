@@ -1,3 +1,11 @@
+// zzOriginalNeuralNetworkTester.c - Original neural network tester.
+//                           Converted matlab code to c.
+//                           Takes in NN.mat and testData.mat
+//                           in the form of .csv files.
+//                           Read in .csv files to run 
+//                           a test on the neural network.
+
+
 #include <stdio.h>
 #include <math.h>
 
