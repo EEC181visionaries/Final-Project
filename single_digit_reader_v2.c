@@ -350,18 +350,19 @@ void region(void)
 
 }//region()
 
-void region2(int cols,int mat[][cols])
+void region2(int cols,int rows,int mat[rows][cols])
 {
 	int xLeft, xRight, yTop, yBot;
-	int r = ROWS/2;
+	int r = HEIGHT/2;
 	int c = 0;
 	int prev_hits = 0;
 	int hits = 0;
 
+  // LROI Left Edge = xLeft
 	for (c = 0; c < cols; c = c + 25)
 	{
 		prev_hits = hits;
-		if ( mat[r][c] == 1)
+		if (mat[r][c] == 1)
 		{
 			xLeft = c;
 			hits++;
@@ -374,13 +375,160 @@ void region2(int cols,int mat[][cols])
 			prev_hits = 0;
 			break;
 		}
-	} // for (col = 0;...)
+	} // for (c = 0;...)
 
+  // LROI Right Edge = xRight
+  for (c = cols; c > 0; c = c - 25)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 1)
+    {
+      xRight = c;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 3)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (c = cols;...)
 
+  // LROI Top Edge = yTop
+  c = WIDTH/2;
+  for (r = 0; r < rows; c = c + 25)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 1)
+    {
+      yTop = r;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 3)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (r = 0;...)
 
+  // LROI Bottom Edge = yBot
+  for (r = rows; r > 0; c = c - 25)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 1)
+    {
+      yBot = r;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 3)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (r = rows;...)
 
+  // ROI Left Edge = xLeft
+  r = (yBot+yTop)/2;
+  int tempxEdge = (xLeft + xRight)/2;
+  for (c = xLeft; c < xRight; c = c + 5)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 0)
+    {
+      if (hit == 0)
+        xLeft = c;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 2)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (c = xLeft;...)
 
+  // ROI Right Edge = xRight
+  for (c = xRight; c > xLeft; c = c - 5)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 0)
+    {
+      if (hit == 0)
+        xRight = c;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 2)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (c = xRight;...)
 
+  // ROI Top Edge = yTop
+  c = tempxEdge;
+  for (r = yTop; r < yBot; c = c + 5)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 0)
+    {
+      if (hit == 0)
+        yTop = r;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 2)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (r = yTop;...)
+
+  // ROI Bottom Edge = yBot
+  for (r = yBot; r > yTop; c = c - 5)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 0)
+    {
+      if (hit == 0)
+        yBot = r;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 2)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (r = yBot;...)
+
+  // Move region of interest to (0,0) of existing array mat[r][c]
+  int tempx = 0; tempy = 0;
+  for (r = yTop; r < yBot; r = r + 1)
+  {
+    for (c = xLeft; c < xRight; c = c +1)
+    {
+      mat[tempx][tempy] = mat[r][c];
+      tempy++;
+    } // for (c = xLeft;...)
+    tempx++;
+  } // for (r = yTop;...)
 
 } // region
 
@@ -528,7 +676,6 @@ int recognizer(void)
   //output = M;
     return M;
 }
-
 
 
 
