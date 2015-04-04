@@ -1,4 +1,4 @@
-// read_nn.c - Reads in the files that were
+// zzread_nn.c - Reads in the files that were
 // included in NN.mat. Files are used for
 // the image processing neural network.
 
