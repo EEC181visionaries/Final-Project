@@ -1,4 +1,4 @@
-function pic2csv(jpg_name, save_name)
+function zzpic2csv(jpg_name, save_name)
 % NOT WORKING YET
 % Takes in a name of a jpg image. Reads
 % jpg image into a matrix. Converts 
