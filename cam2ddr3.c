@@ -1,6 +1,7 @@
 // EEC181 Demo
 // Team Visionaries
 // Philip Chan, Jessica Ma, Chan Lu
+// cam2ddr3.c - loads the image from the camera into DDR3
 
 
 #include <stdio.h>
