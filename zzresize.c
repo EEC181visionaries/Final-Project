@@ -1,3 +1,4 @@
+// zzresize.c - 
 //need global variables size_x size_y roi[WIDTH][HEIGHT] digit[WIDTH][HEIGHT] scaled[WIDTH][HEIGHT]
 
 void resize(){
