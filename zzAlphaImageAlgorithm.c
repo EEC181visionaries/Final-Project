@@ -1,3 +1,5 @@
+// zzAlphaImageAlgorithm.c - original code translated from .m to .c
+//                           not tested
 // Author: Chan
 
 #define WIDTH
