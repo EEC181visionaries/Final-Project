@@ -1,4 +1,4 @@
-function pic2arrays(jpg_name, save_name)
+function zzpic2arrays(jpg_name, save_name)
 % Takes in a name of a jpg photo
 % saves all 3 matricies into the 
 % name indicated for saving.
