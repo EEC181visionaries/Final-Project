@@ -1,19 +1,4 @@
-Skip to content
- This repository
-Explore
-Gist
-Blog
-Help
-@ChanPhilip77 ChanPhilip77
- 
- Unwatch 3
-  Star 0
- Fork 0EEC181visionaries/Final-Project
- branch: master  Final-Project/single_digit_reader.c
-@ChanPhilip77ChanPhilip77 2 days ago Update single_digit_reader.c
-2 contributors @ChanPhilip77 @MaJessica9
-RawBlameHistory     505 lines (434 sloc)  9.265 kb
-// trimmed_test.c - Reads in a photo and prints out data
+// single_digit_reader_v2.c - Reads in a photo and prints out data
 
 // Libraries
 #include <stdlib.h>
@@ -549,8 +534,3 @@ int recognizer(void)
 
 
 
-
-
-
-Status API Training Shop Blog About
-© 2015 GitHub, Inc. Terms Privacy Security Contact
