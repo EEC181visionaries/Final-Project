@@ -519,17 +519,16 @@ void region2(int cols,int rows,int mat[rows][cols])
   } // for (r = yBot;...)
 
   // Move region of interest to (0,0) of existing array mat[r][c]
-  int tempx = 0; tempy = 0;
-  for (r = yTop; r < yBot; r = r + 1)
+  size_x = xRight - xLeft;
+  size_y = yBot - yTop;
+  for (r = 0; r < size_y; r = r + 1)
   {
-    for (c = xLeft; c < xRight; c = c +1)
+    for (c = 0; c < size_x; c = c +1)
     {
-      mat[tempx][tempy] = mat[r][c];
-      tempy++;
+      mat[r][c] = mat[yTop + r][xLeft + c];
     } // for (c = xLeft;...)
-    tempx++;
   } // for (r = yTop;...)
-
+  
 } // region
 
 
