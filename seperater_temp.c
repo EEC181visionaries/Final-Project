@@ -544,6 +544,10 @@ void digit_separate()
 	int bad = 0;
 	int digit_left = 0;
 	int digit_right = 0;
+	int digit_width = 0;
+	int digit_top = 0;
+	int digit_bot = 0;
+	int digit_height = 0;
 	int **digit;
 
 	for (c = 0; i < size_x; c = c+4)
@@ -582,24 +586,50 @@ void digit_separate()
 						*/
 						digit_left = last_mid;
 						digit_right = mid;
-						for (i = last_mid; i < mid; i++) // rows
+						for (j = last_mid; j < mid; j++) // cols 
 						{
-							for (j = 0; j < size_y; j++) // cols
+							for (i = 0; i < size_y; i++) // rows, check each row in cloumn before next column
 							{
 								if (roi[i][j] == 1)
-									digit_left = i;
+									digit_left = j;
 							}
 						}
 
-						for (i = mid; i > last_mid; i--)
+						for (j = mid-1; j >= last_mid; j--)
 						{
-							for (j = 0; j < size_y; j++)
+							for (i = 0; i < size_y; i++)
 							{
 								if (roi[i][j] == 1)
 									digit_right = i;
 							}
 						}
+						digit_width = digit_right - digit_left;
 
+
+						for ( i = 0; i < size_y; i++) // rows
+						{
+							for (j = 0; j < size_x; j++) // cols
+							{
+								if (roi[i][j] == 1)
+									digit_top = i;
+							}
+						}
+
+						for ( i = size_y-1; i >= 0; i--) // rows
+						{
+							for (j = 0; j < size_x; j++) // cols
+							{
+								if (roi[i][j] == 1)
+									digit_bot = i;
+							}
+						}
+
+						digit_height = digit_bot - digit_top;
+
+						// NOTES:
+						// image = 28mm
+						// digit size = 20mm
+						// black space bot & top = 4mm each
 
 					} // if (bad != 1)
 
