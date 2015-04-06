@@ -35,14 +35,13 @@ int w, x, y, v, lt, lb, rt, rb;
 int black_white[HEIGHT][WIDTH];
 int roi[HEIGHT][WIDTH];
 int digit[HEIGHT][WIDTH];
-int data[784];
 int size_x = 0, size_y = 0;
 
 // List of functions
 void region(void);
 void region2(int cols,int mat[][cols]);
-void resize(void);
-int recognizer(void);
+int resize(int height, int width, int** digit);
+int recognizer(int data[784]);
 
 int main(void)
 {
@@ -533,52 +532,69 @@ void region2(int cols,int rows,int mat[rows][cols])
 
 
 
-void resize(void){
-	int digits[size_y][size_x];
-	int i,j;
-	int x_pixels = size_x/28;
-	int y_pixels = size_y/28; 
-	int x_start = (size_x%28)/2;
-	int x_end = size_x - (size_x%28)/2;
-	int y_start = (size_y%28)/2;
-	int y_end = size_y - (size_y%28)/2;
-	int k, l;
-	double average;
-	double square = x_pixels * y_pixels;
-	int digitsx = 0, digitsy = 0;//These are the pixels of the scaled down digit		
+int resize(int height, int width, int** digit){
+  int digit_final[28][28];
+  int digit_vector[784];
+  int i,j;
+  int x_pixels = (width + 27)/28;
+  int y_pixels = (height + 27)/28;
+  int k, l;
+  double average;
+  double square = x_pixels * y_pixels;
+  int digit_x = 0, digit_y = 0;//These are the pixels of the scaled down digit		
 
-
-	for(i = x_start; i < x_end; i += x_pixels){
-		digitsy = 0;
-		for(j = y_start; j < y_end; j += y_pixels){
-			average = 0;
-			for(k = 0; k < x_pixels; k++){
-				for(l = 0; l < y_pixels; l++){
-					average += roi[i + k][j + l];
-				}//Calculate the sum of the square
-			}
-			average = average / square; //Get the average density
-			if(average >= 0.5)
-				digits[digitsx][digitsy] = 1;
-			else
-				digits[digitsx][digitsy] = 0;
-			digitsy++;
-		}
-		digitsx++;	
+  for(i = 0; i < 28; i++)
+  {
+    for(j = 0; j < 28; j++)
+    {
+      digit_final[i][j] = 0;
+    }
   }
+
+  for(i = 0; i < (height - (height%28)); i = i + y_pixels)
+  {
+    digit_x = 0;
+    for(j = 0; j < (width - (width%28)); j = j + x_pixels)
+    {
+      average = 0;
+      for(k = 0; k < y_pixels && ((i+k) < height); k++)
+      {
+        for(l = 0; l < x_pixels && ((j+l) < width); l++)
+        {
+          average += digit[i+k][j+l];
+        }
+      }
+      average = average / square;
+
+      if(average >= 0.5)
+      {
+        digit_final[digit_y][digit_x] = 1;
+      }
+      else
+      {
+        digit_final[digit_y][digit_x] = 0;
+      }
+      digit_x++;
+    } //for (j = 0;...)
+    digit_y++;
+  } //for (i = 0;...)
+
   k = 0;
   for(i = 0; i < 28; i++)
   {
     for(j = 0; j < 28; j++)
     {
-      data[k] = digits[j][i];
+      digit_vector[k] = digit_final[i][j];
       k++;
     }
   }
-	
-}
 
-int recognizer(void)
+  l = recognizer(digit_vector);
+  return l;
+} //void resize(...)
+
+
+int recognizer(int data[784])
 {
   long double Vb1[200], Vb2[200], Vb3[10]; // array[row][col]
   int M = 0;
