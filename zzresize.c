@@ -11,7 +11,7 @@ void resize(){
 			tempy++;
 		}
 		tempx++;
-	}//fill empty matrix
+	}//fill the empty matrix
 
 	//pixels are pixel count increments scaled down by 28
 	//start and ends are boxes that should fit 28 by 28, trimmed down edges by remainder/2 each side
