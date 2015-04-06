@@ -1,4 +1,5 @@
-// test.c - Reads in a photo and prints out data
+// zzSingleDigitRecognizer.c - Translated code from 
+//                   zzSingleDigitRecognizer_csv.c
 
 // Libraries
 #include <stdlib.h>
