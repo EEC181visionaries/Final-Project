@@ -533,65 +533,57 @@ void region2(int cols,int rows,int mat[rows][cols])
 
 
 int resize(int height, int width, int** digit){
-  int digit_final[28][28];
-  int digit_vector[784];
-  int i,j;
-  int x_pixels = (width + 27)/28;
-  int y_pixels = (height + 27)/28;
-  int k, l;
-  double average;
-  double square = x_pixels * y_pixels;
-  int digit_x = 0, digit_y = 0;//These are the pixels of the scaled down digit		
 
-  for(i = 0; i < 28; i++)
-  {
-    for(j = 0; j < 28; j++)
-    {
-      digit_final[i][j] = 0;
-    }
-  }
+	int digit_final[28][28];
+	int digit_vector[784];
+	int i,j;
+	int x_pixels = (width + 27)/28;
+	int y_pixels = (height + 27)/28;
+	int k, l;
+	double average;
+	double square = x_pixels * y_pixels;
+	int digit_x = 0, digit_y = 0;//These are the pixels of the scaled down digit		
 
-  for(i = 0; i < (height - (height%28)); i = i + y_pixels)
-  {
-    digit_x = 0;
-    for(j = 0; j < (width - (width%28)); j = j + x_pixels)
-    {
-      average = 0;
-      for(k = 0; k < y_pixels && ((i+k) < height); k++)
-      {
-        for(l = 0; l < x_pixels && ((j+l) < width); l++)
-        {
-          average += digit[i+k][j+l];
-        }
-      }
-      average = average / square;
+	for(i = 0; i < 28; i++){
+		for(j = 0; j < 28; j++)
+			digit_final[i][j] = 0;
+	}
+	
+	for(i = 0; i < (height - (height%28)); i = i + y_pixels){
+		digit_x = 0;
+		for(j = 0; j < (width - (width%28)); j = j + x_pixels){
+			average = 0;
+			for(k = 0; k < y_pixels && ((i+k) < height); k++){
+				for(l = 0; l < x_pixels && ((j+l) < width); l++){
+					average += digit[i+k][j+l];
+				}
+			}
+			average = average / square;
 
-      if(average >= 0.5)
-      {
-        digit_final[digit_y][digit_x] = 1;
-      }
-      else
-      {
-        digit_final[digit_y][digit_x] = 0;
-      }
-      digit_x++;
-    } //for (j = 0;...)
-    digit_y++;
-  } //for (i = 0;...)
+			if(average >= 0.5){
+				digit_final[digit_y][digit_x] = 1;
+			}
+			else{
+				digit_final[digit_y][digit_x] = 0;
+			}
+			digit_x++;
+}
 
+		digit_y++;
+	}
   k = 0;
   for(i = 0; i < 28; i++)
   {
     for(j = 0; j < 28; j++)
     {
-      digit_vector[k] = digit_final[i][j];
+      digit_vector[k] = digit_final[j][i];
       k++;
     }
   }
 
   l = recognizer(digit_vector);
   return l;
-} //void resize(...)
+}
 
 
 int recognizer(int data[784])
