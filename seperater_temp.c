@@ -13,6 +13,7 @@
 #define WIDTH 640
 #define HEIGHT 480
 #define BW_LEVEL  130
+#define MAX_DIGITS 5
 
 // Registers
 #define READ_IN_ADDR  0xFF200090
@@ -38,9 +39,10 @@ int size_x = 0, size_y = 0;
 
 // List of functions
 void region(void);
-void region2(int cols,int mat[][cols]);
+void region2(int cols,int rows,int mat[rows][cols]);
 void resize(void);
 int recognizer(void);
+void digit_separate();
 
 int main(void)
 {
@@ -63,6 +65,12 @@ int main(void)
   *clock_select = 0;
   int write_data = 0;
   int written = 0;
+  int bright_levels[48][64];
+  int bright_level_row_counter = 0;
+  int bright_level_col_counter = 0;
+  int bi = 0;
+  int bj = 0;
+  int bright_write=0;
 
 
 while(1){
@@ -114,6 +122,13 @@ while(1){
             if (*read_good) // take in data from verilog to read block (not sure if needed)
             {
               write_data = *(sdram_data1);
+			  if (k%10 == 0 && j%10 == 0)
+				  bright_write = 1;
+			  if (bright_write == 1)
+			  {
+				  bright_levels[j/10][k/10] = write_data;
+				  bright_write = 0;
+			  }
               if (write_data < BW_LEVEL)  // write black or white
               {
                 //*write_block = 0;
@@ -149,11 +164,37 @@ while(1){
     }
 
     *(sdram_read) = 0;
-
+	//region2(WIDTH,HEIGHT,black_white);
     region();
+	printf("region found\n");
+	digit_separate();
+	printf("separate done\n");
+	/*
     resize();
     M = recognizer();
     printf("Guessed %d\n\n",M);
+	*/
+	/*
+	for (i = 0; i< 48; i++)
+	{
+		for (j = 0; j < 64; j++)
+		{
+			printf("%d ", bright_levels[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+	*/
+	/*
+		for (i = 0; i < size_y; i++)
+		{
+			for (j = 0; j < size_x; j++)
+			{
+				printf("%d\t", roi[i][j]);
+			}
+			printf("\n");
+		}
+		*/
   }
 
   return 0;
@@ -332,14 +373,14 @@ void region(void)
   int tempx = 0, tempy = 0;
   for(i = v; i < w; i++)
   {
-    tempy = 0;
+    tempx = 0;
     for(j = x; j < y; j++)
     {
-      roi[tempx][tempy] = black_white[i][j];
-      tempy++;
+      roi[tempy][tempx] = black_white[i][j];
+      tempx++;
       //printf("%d\n",roi[tempx][tempy]); 
     }
-    tempx++;
+    tempy++;
   }
   size_x = tempx;
   size_y = tempy;
@@ -348,18 +389,19 @@ void region(void)
 
 }//region()
 
-void region2(int cols,int mat[][cols])
+void region2(int cols,int rows,int mat[rows][cols])
 {
 	int xLeft, xRight, yTop, yBot;
-	int r = ROWS/2;
+	int r = HEIGHT/2;
 	int c = 0;
 	int prev_hits = 0;
 	int hits = 0;
 
+  // LROI Left Edge = xLeft
 	for (c = 0; c < cols; c = c + 25)
 	{
 		prev_hits = hits;
-		if ( mat[r][c] == 1)
+		if (mat[r][c] == 1)
 		{
 			xLeft = c;
 			hits++;
@@ -372,14 +414,160 @@ void region2(int cols,int mat[][cols])
 			prev_hits = 0;
 			break;
 		}
-	} // for (col = 0;...)
+	} // for (c = 0;...)
 
+  // LROI Right Edge = xRight
+  for (c = cols; c > 0; c = c - 25)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 1)
+    {
+      xRight = c;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 3)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (c = cols;...)
 
+  // LROI Top Edge = yTop
+  c = WIDTH/2;
+  for (r = 0; r < rows; c = c + 25)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 1)
+    {
+      yTop = r;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 3)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (r = 0;...)
 
+  // LROI Bottom Edge = yBot
+  for (r = rows; r > 0; c = c - 25)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 1)
+    {
+      yBot = r;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 3)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (r = rows;...)
 
+  // ROI Left Edge = xLeft
+  r = (yBot+yTop)/2;
+  int tempxEdge = (xLeft + xRight)/2;
+  for (c = xLeft; c < xRight; c = c + 5)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 0)
+    {
+      if (hits == 0)
+        xLeft = c;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 2)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (c = xLeft;...)
 
+  // ROI Right Edge = xRight
+  for (c = xRight; c > xLeft; c = c - 5)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 0)
+    {
+      if (hits == 0)
+        xRight = c;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 2)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (c = xRight;...)
 
+  // ROI Top Edge = yTop
+  c = tempxEdge;
+  for (r = yTop; r < yBot; c = c + 5)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 0)
+    {
+      if (hits == 0)
+        yTop = r;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 2)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (r = yTop;...)
 
+  // ROI Bottom Edge = yBot
+  for (r = yBot; r > yTop; c = c - 5)
+  {
+    prev_hits = hits;
+    if (mat[r][c] == 0)
+    {
+      if (hits == 0)
+        yBot = r;
+      hits++;
+    }
+    if (prev_hits == hits && hits) // if no new hits, and 
+      hits = 0;
+    if (hits == 2)
+    {
+      hits = 0;
+      prev_hits = 0;
+      break;
+    }
+  } // for (r = yBot;...)
+
+  // Move region of interest to (0,0) of existing array mat[r][c]
+  size_x = xRight - xLeft;
+  size_y = yBot - yTop;
+  for (r = 0; r < size_y; r = r + 1)
+  {
+    for (c = 0; c < size_x; c = c +1)
+    {
+      mat[r][c] = mat[yTop + r][xLeft + c];
+    } // for (c = xLeft;...)
+  } // for (r = yTop;...)
+  
 } // region
 
 
@@ -548,9 +736,21 @@ void digit_separate()
 	int digit_top = 0;
 	int digit_bot = 0;
 	int digit_height = 0;
-	int **digit;
+	int padding = 0;
+	int horz_padding = 0;
+	int last = 0;
+	int ***digit;
+	int digit_size[MAX_DIGITS] = {0}; // base and height of the digit image before resize
+	int digit_num = 0;
+	digit = (int ***) malloc(MAX_DIGITS*sizeof(int **));
+	printf("digit = (int ***)\n");
+	/*
+		digit = (int **)malloc(size_y * sizeof(int *));
+		for (r = 0; r < size_y; r++)
+			digit[r] = (int *)malloc(size_x * sizeof(int));
+	*/
 
-	for (c = 0; i < size_x; c = c+4)
+	for (c = 0; c < size_x; c = c+4)
 	{
 		if ( (roi[r][c] == 1) || (c+4 > size_x) )
 		{
@@ -558,14 +758,18 @@ void digit_separate()
 			{
 				first = 0;
 				hit = 1;
+				printf("hit = 1;\n");
 			}
 			else
 			{
-				if ( hit == 0)
+				printf("else\n");
+				printf("hit = %d\n", hit);
+				if(hit == 0)
 				{
+					printf("hit == 0\n");
 					hit = 1;
 					mid = c + right_edge/2;
-					if ( roi[r][c] == 1)
+					if( roi[r][c] == 1)
 					{
 						for (column_checker = 0; column_checker < size_y; column_checker++)
 						{
@@ -579,32 +783,13 @@ void digit_separate()
 					} // if ( roi[r][c] == 1)
 					if (bad != 1)
 					{
+						printf("if (bad != 1\n");
+
 						/*
 						digit = (int **)malloc(size_y * sizeof(int *));
 						for (r = 0; r < size_y; r++)
 							digit[r] = (int *)malloc(size_x * sizeof(int));
 						*/
-						digit_left = last_mid;
-						digit_right = mid;
-						for (j = last_mid; j < mid; j++) // cols 
-						{
-							for (i = 0; i < size_y; i++) // rows, check each row in cloumn before next column
-							{
-								if (roi[i][j] == 1)
-									digit_left = j;
-							}
-						}
-
-						for (j = mid-1; j >= last_mid; j--)
-						{
-							for (i = 0; i < size_y; i++)
-							{
-								if (roi[i][j] == 1)
-									digit_right = i;
-							}
-						}
-						digit_width = digit_right - digit_left;
-
 
 						for ( i = 0; i < size_y; i++) // rows
 						{
@@ -625,11 +810,87 @@ void digit_separate()
 						}
 
 						digit_height = digit_bot - digit_top;
+						padding = digit_height/5;
+						printf("padding = digit_height/5\n");
+
+
+						if (digit_num < MAX_DIGITS)
+							digit_size[digit_num] = digit_height + padding + padding;
+						horz_padding = (digit_size[digit_num] - digit_width)/2;
+
+						digit_left = last_mid;
+						digit_right = mid;
+						for (j = last_mid; j < mid; j++) // cols 
+						{
+							for (i = 0; i < size_y; i++) // rows, check each row in cloumn before next column
+							{
+								if (roi[i][j] == 1)
+									digit_left = j;
+							}
+						}
+
+						for (j = mid-1; j >= last_mid; j--)
+						{
+							for (i = 0; i < size_y; i++)
+							{
+								if (roi[i][j] == 1)
+									digit_right = i;
+							}
+						}
+						digit_width = digit_right - digit_left;
+						printf("digit_width = digit_right - digit_left\n");
+
+
+
+						// allocate space for digit, add padding to it
+						if (digit_num < MAX_DIGITS)
+						{
+							digit[digit_num] = (int **) malloc(digit_size[digit_num] * sizeof(int*));
+							for (i = 0; i < digit_size[digit_num]; i++)
+								digit[digit_num][i] = (int *)malloc(digit_size[digit_num] * sizeof(int));
+
+							for (i = 0; i < digit_size[digit_num]; i++) // write black to every pixel
+							{
+								for (j = 0; j < digit_size[digit_num]; j++) // write to every pixel in the row
+								{
+									digit[digit_num][i][j] = 0;
+								}
+							}
+
+							// write digit to middle of black box
+							for (i = padding; i < padding + digit_height; i++)
+							{
+								for (j = horz_padding; i < horz_padding + digit_width; j++)
+								{
+									digit[digit_num][i][j] = roi[digit_top + i][digit_left + j];
+								}
+							}
+							
+
+							for (i = 0; i < digit_size[digit_num]; i++)
+							{
+								for (j = 0; j < digit_size[digit_num]; j++)
+								{
+									printf("%d\t", digit[digit_num][i][j]);
+								}
+								printf("\n");
+							}
+
+
+
+							printf("\n\n\n");
+
+							digit_num++;
+						} // if(digit_num < MAX_DIGITS)
+
+						
 
 						// NOTES:
 						// image = 28mm
 						// digit size = 20mm
 						// black space bot & top = 4mm each
+
+						last_mid = mid;
 
 					} // if (bad != 1)
 
@@ -637,10 +898,20 @@ void digit_separate()
 
 				} // if ( hit == 0)
 			}
+			last = 1;
 		} // if ( (roi[r][c] == 1) ||...
+		else 
+		{
+			if (last == 1)
+			{
+				right_edge = c;
+			}
+			last = 0;
+			hit = 0;
+			printf("hit = 0;\n");
+		}
 
-
-
+		bad = 0;
 
 	} // for(c = 0; i < size_x; c = c+4)
 } // digit_separate
