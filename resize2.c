@@ -17,27 +17,28 @@ void resize(int height, int width, int** digit){
 
 	printf("%d by %d and %d by %d\n", height, width, y_pixels, x_pixels);
 /*
-	for(i = 0; i < height - y_pixels; i++)
+	for(i = 0; i <= height - (height%y_pixels); i++)
 	{
-		for(j = 0; j < width - x_pixels; j++)
+		for(j = 0; j <= width - (width%x_pixels); j++)
 			printf("(%d,%d) %d\n",i,j, digit[i][j]);
 	}
 */
-	for(i = 0; i < ((height) - (height%y_pixels)); i = i + y_pixels){
+	for(i = 0; i < (height - (height%28)); i = i + y_pixels){
 		digit_x = 0;
-		for(j = 0; j < (width - (width%x_pixels)); j = j + x_pixels){
+		for(j = 0; j < (width - (width%28)); j = j + x_pixels){
 			average = 0;
 
 			for(k = 0; k < y_pixels; k++){
 				for(l = 0; l < x_pixels; l++){
 					average += digit[i+k][j+l];
-					//printf("accessing (%d, %d), i %d\n", i+k, j+l, y_pixels);
+					printf("accessing (%d, %d), j %d\n", i+k, j+l, j);
 					
 				}
 				//printf("Exit for(l...)\n");
 			}
 			//printf("Exit for(k...)\n");
 			average = average / square;
+
 			if(average >= 0.5){
 				digit_final[digit_y][digit_x] = 1;
 				//printf("if (white)\n");
@@ -47,7 +48,8 @@ void resize(int height, int width, int** digit){
 				//printf("else //black\n");
 			}
 			digit_x++;
-			printf("%d by %d and %d by %d\n", y_pixels, x_pixels, (height-height%y_pixels), (width - width%x_pixels));
+//			printf("digit j %d\n", j);
+//			printf("%d by %d and %d by %d\n", y_pixels, x_pixels, (height-height%y_pixels), (width - width%x_pixels));
 		}
 		//printf("Exit for(j...)\n");
 		digit_y++;
