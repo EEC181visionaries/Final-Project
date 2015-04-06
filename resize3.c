@@ -53,7 +53,7 @@ void resize(int height, int width, int** digit){
 		digit_y++;
 	}
 
-
+/*
   fp = fopen("resize.csv", "w");
 
   if (fp == NULL)
@@ -76,5 +76,5 @@ void resize(int height, int width, int** digit){
     }
   }
   fclose(fp);
-
+*/
 }
