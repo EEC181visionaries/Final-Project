@@ -3,12 +3,12 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "finalB1L1.c"
-#include "finalB1L2.c"
-#include "finalSoftmaxTheta.c"
-#include "finalW1L1.c"
-#include "finalW1L2.c"
-#include "image_2.c"
+//#include "finalB1L1.c"
+//#include "finalB1L2.c"
+//#include "finalSoftmaxTheta.c"
+//#include "finalW1L1.c"
+//#include "finalW1L2.c"
+//#include "image_2.c"
 
 // Definitions
 #define WIDTH 640
@@ -33,8 +33,8 @@
 // Computing ROI and Separate Images
 int w, x, y, v, lt, lb, rt, rb;
 int black_white[HEIGHT][WIDTH];
-//int roi[HEIGHT][WIDTH];
-int digit[HEIGHT][WIDTH];
+int roi[HEIGHT][WIDTH];
+//int digit[HEIGHT][WIDTH];
 int data[784];
 int size_x = 0, size_y = 0;
 
@@ -163,22 +163,7 @@ while(1){
       snapshot = 0;
       //printf("Done\n");
     }
-
-    *(sdram_read) = 0;
-	//region2(WIDTH,HEIGHT,black_white);
-    //region();
-	size_x = 155;
-	size_y = 160;
-	printf("region found\n");
-	digit_separate();
-	printf("separate done\n");
-	/*
-    resize();
-    M = recognizer();
-    printf("Guessed %d\n\n",M);
-	*/
-
-	/*
+/*
 	for (i = 0; i< 48; i++)
 	{
 		for (j = 0; j < 64; j++)
@@ -188,7 +173,32 @@ while(1){
 		printf("\n");
 	}
 	printf("\n");
+*/	
+
+    *(sdram_read) = 0;
+	//region2(WIDTH,HEIGHT,black_white);
+    region();
+	//size_x = 155;
+	//size_y = 160;
+	printf("region found\n");
+	for (i= 0; i < size_y; i++)
+	{
+		for (j = 0; j < size_x; j++)
+		{
+			printf("%d\t",roi[i][j]);
+		}
+		printf("\n");
+	}
+	digit_separate();
+	printf("separate done\n");
+	/*
+    resize();
+    M = recognizer();
+    printf("Guessed %d\n\n",M);
 	*/
+
+	
+	
 
 	/*
 		for (i = 0; i < size_y; i++)
@@ -621,7 +631,7 @@ void resize(void){
   }
 	
 }
-
+/*
 int recognizer(void)
 {
   long double Vb1[200], Vb2[200], Vb3[10]; // array[row][col]
@@ -719,7 +729,7 @@ int recognizer(void)
   //output = M;
     return M;
 }
-
+*/
 
 
 void digit_separate()
@@ -748,9 +758,9 @@ void digit_separate()
 	int digit_size[MAX_DIGITS] = {0}; // base and height of the digit image before resize
 	int digit_num = 0;
 	r = size_y/2;
-	printf("r = %d\n", r);
+	printf("size_x = %d\n", size_x);
+	printf("size_y = %d\n", size_y);
 	digit = (int ***) malloc(MAX_DIGITS*sizeof(int **));
-	printf("digit = (int ***)\n");
 	/*
 		digit = (int **)malloc(size_y * sizeof(int *));
 		for (r = 0; r < size_y; r++)
@@ -798,9 +808,9 @@ void digit_separate()
 							digit[r] = (int *)malloc(size_x * sizeof(int));
 						*/
 
-						for ( i = 0; i < size_y; i++) // rows
+						for ( i = 5; i < size_y-5; i++) // rows
 						{
-							for (j = 0; j < size_x; j++) // cols
+							for (j = last_mid; j < mid; j++) // cols
 							{
 								if (roi[i][j] == 1)
 								{
@@ -812,9 +822,9 @@ void digit_separate()
 							}
 						}
 
-						for ( i = size_y-1; i >= 0; i--) // rows
+						for ( i = size_y-6; i >= 5; i--) // rows
 						{
-							for (j = 0; j < size_x; j++) // cols
+							for (j = last_mid; j < mid; j++) // cols
 							{
 								if (roi[i][j] == 1)
 								{
@@ -837,13 +847,13 @@ void digit_separate()
 
 						if (digit_num < MAX_DIGITS)
 							digit_size[digit_num] = digit_height + padding + padding;
-						horz_padding = (digit_size[digit_num] - digit_width)/2;
+						
 
 						digit_left = last_mid;
 						digit_right = mid;
 						for (j = last_mid; j < mid; j++) // cols 
 						{
-							for (i = 0; i < size_y; i++) // rows, check each row in cloumn before next column
+							for (i = 5; i < size_y-5; i++) // rows, check each row in cloumn before next column
 							{
 								if (roi[i][j] == 1)
 								{
@@ -857,7 +867,7 @@ void digit_separate()
 
 						for (j = mid-1; j >= last_mid; j--)
 						{
-							for (i = 0; i < size_y; i++)
+							for (i = 5; i < size_y-5; i++)
 							{
 								if (roi[i][j] == 1)
 								{
@@ -873,6 +883,7 @@ void digit_separate()
 						printf("digit_left = %d\n",digit_left);
 
 						digit_width = digit_right - digit_left;
+						horz_padding = (digit_size[digit_num] - digit_width)/2;
 						printf("digit_width = %d\n",digit_width);
 
 
@@ -902,15 +913,18 @@ void digit_separate()
 							// write digit to middle of black box
 							for (i = padding; i < padding + digit_height; i++)
 							{
-								for (j = horz_padding; i < horz_padding + digit_width; j++)
+								for (j = horz_padding; j < horz_padding + digit_width; j++)
 								{
-									digit[digit_num][i][j] = roi[digit_top + i][digit_left + j];
+									digit[digit_num][i][j] = roi[digit_top + i - padding][digit_left + j - horz_padding];
 								}
 							}
 
 							printf("done placing digit\n");
 							
 
+							printf("number: %d\n", digit_num);
+
+/*
 							for (i = 0; i < digit_size[digit_num]; i++)
 							{
 								for (j = 0; j < digit_size[digit_num]; j++)
@@ -919,7 +933,7 @@ void digit_separate()
 								}
 								printf("\n");
 							}
-
+*/
 
 
 							printf("\n\n\n");
@@ -959,6 +973,26 @@ void digit_separate()
 		bad = 0;
 
 	} // for(c = 0; i < size_x; c = c+4)
+
+
+/*
+	digit[digit_num] = (int **) malloc(digit_size[digit_num] * sizeof(int*));
+	for (i = 0; i < digit_size[digit_num]; i++)
+	{
+		for (j = 0; j < digit_size[digit_num]; j++)
+			free(digit[digit_num][i][j]);
+	}
+	for (i = 0; i < digit_size[digit_num]; i++)
+	{
+		free(digit[digit_num][i]);
+	}
+	for (i = 0; i < digit_num; i++)
+	{
+		free(digit[digit_num]);
+	}
+*/
+
+
 } // digit_separate
 
 void digit_separate2()
