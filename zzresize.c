@@ -33,7 +33,7 @@ void resize(){
 				}//Calculate the sum of the square
 			}
 			average = average / square; //Get the average density
-			if(sum >= 0.5)
+			if(average >= 0.5)
 				scaled[digitsx][digitsy] = 1;
 			else
 				scaled[place][digitsx][digitsy] = 0;
