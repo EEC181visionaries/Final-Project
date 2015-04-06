@@ -8,6 +8,7 @@
 #include "finalSoftmaxTheta.c"
 #include "finalW1L1.c"
 #include "finalW1L2.c"
+#include "image_2.c"
 
 // Definitions
 #define WIDTH 640
@@ -32,7 +33,7 @@
 // Computing ROI and Separate Images
 int w, x, y, v, lt, lb, rt, rb;
 int black_white[HEIGHT][WIDTH];
-int roi[HEIGHT][WIDTH];
+//int roi[HEIGHT][WIDTH];
 int digit[HEIGHT][WIDTH];
 int data[784];
 int size_x = 0, size_y = 0;
@@ -165,7 +166,9 @@ while(1){
 
     *(sdram_read) = 0;
 	//region2(WIDTH,HEIGHT,black_white);
-    region();
+    //region();
+	size_x = 155;
+	size_y = 160;
 	printf("region found\n");
 	digit_separate();
 	printf("separate done\n");
@@ -174,6 +177,7 @@ while(1){
     M = recognizer();
     printf("Guessed %d\n\n",M);
 	*/
+
 	/*
 	for (i = 0; i< 48; i++)
 	{
@@ -185,6 +189,7 @@ while(1){
 	}
 	printf("\n");
 	*/
+
 	/*
 		for (i = 0; i < size_y; i++)
 		{
@@ -719,7 +724,7 @@ int recognizer(void)
 
 void digit_separate()
 {
-	int r = 0;
+	int r = size_y/2;
 	int c = 0;
 	int i = 0;
 	int j = 0;
@@ -742,6 +747,8 @@ void digit_separate()
 	int ***digit;
 	int digit_size[MAX_DIGITS] = {0}; // base and height of the digit image before resize
 	int digit_num = 0;
+	r = size_y/2;
+	printf("r = %d\n", r);
 	digit = (int ***) malloc(MAX_DIGITS*sizeof(int **));
 	printf("digit = (int ***)\n");
 	/*
@@ -752,35 +759,35 @@ void digit_separate()
 
 	for (c = 0; c < size_x; c = c+4)
 	{
-		if ( (roi[r][c] == 1) || (c+4 > size_x) )
+		if ( (roi[r][c] == 1) || (c+4 >= size_x) )
 		{
+			printf("hit white\n");
 			if (first)
 			{
 				first = 0;
 				hit = 1;
-				printf("hit = 1;\n");
 			}
 			else
 			{
-				printf("else\n");
-				printf("hit = %d\n", hit);
 				if(hit == 0)
 				{
-					printf("hit == 0\n");
 					hit = 1;
 					mid = c + right_edge/2;
-					if( roi[r][c] == 1)
+					if (c +4 < size_x)
 					{
-						for (column_checker = 0; column_checker < size_y; column_checker++)
+						if( roi[r][c] == 1)
 						{
-							if (roi[column_checker][mid] == 1)
+							for (column_checker = 0; column_checker < size_y; column_checker++)
 							{
-								bad = 1;
-								break;
+								if (roi[column_checker][mid] == 1)
+								{
+									bad = 1;
+									break;
+								}
 							}
-						}
-
-					} // if ( roi[r][c] == 1)
+							
+						} // if ( roi[r][c] == 1)
+					}
 					if (bad != 1)
 					{
 						printf("if (bad != 1\n");
@@ -796,7 +803,12 @@ void digit_separate()
 							for (j = 0; j < size_x; j++) // cols
 							{
 								if (roi[i][j] == 1)
+								{
 									digit_top = i;
+									i = size_y;
+									j = size_x;
+									break;
+								}
 							}
 						}
 
@@ -805,13 +817,22 @@ void digit_separate()
 							for (j = 0; j < size_x; j++) // cols
 							{
 								if (roi[i][j] == 1)
+								{
 									digit_bot = i;
+									i = -1;
+									j = size_x;
+									break;
+								}
 							}
 						}
 
+						printf("digit_bot = %d\n",digit_bot);
+						printf("digit_top = %d\n",digit_top);
+
 						digit_height = digit_bot - digit_top;
+						printf("digit_height = %d\n",digit_height);
 						padding = digit_height/5;
-						printf("padding = digit_height/5\n");
+						printf("padding = %d\n", padding);
 
 
 						if (digit_num < MAX_DIGITS)
@@ -825,7 +846,12 @@ void digit_separate()
 							for (i = 0; i < size_y; i++) // rows, check each row in cloumn before next column
 							{
 								if (roi[i][j] == 1)
+								{
 									digit_left = j;
+									j = mid;
+									i = size_y;
+									break;
+								}
 							}
 						}
 
@@ -834,17 +860,29 @@ void digit_separate()
 							for (i = 0; i < size_y; i++)
 							{
 								if (roi[i][j] == 1)
+								{
 									digit_right = i;
+									j = last_mid-1;
+									i = size_y;
+									break;
+								}
 							}
 						}
+
+						printf("digit_right = %d\n",digit_right);
+						printf("digit_left = %d\n",digit_left);
+
 						digit_width = digit_right - digit_left;
-						printf("digit_width = digit_right - digit_left\n");
+						printf("digit_width = %d\n",digit_width);
 
 
-
+						printf("digit_num = %d\n", digit_num);
+						printf("digit_size[digit_num] = %d\n",digit_size[digit_num]);
 						// allocate space for digit, add padding to it
 						if (digit_num < MAX_DIGITS)
 						{
+							printf("digit_num < MAX_DIGITS\n");
+							
 							digit[digit_num] = (int **) malloc(digit_size[digit_num] * sizeof(int*));
 							for (i = 0; i < digit_size[digit_num]; i++)
 								digit[digit_num][i] = (int *)malloc(digit_size[digit_num] * sizeof(int));
@@ -902,13 +940,14 @@ void digit_separate()
 		} // if ( (roi[r][c] == 1) ||...
 		else 
 		{
+			printf("hit black\n");
 			if (last == 1)
 			{
 				right_edge = c;
 			}
 			last = 0;
 			hit = 0;
-			printf("hit = 0;\n");
+			//printf("hit = 0;\n");
 		}
 
 		bad = 0;
