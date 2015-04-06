@@ -887,6 +887,8 @@ void digit_separate()
 							for (i = 0; i < digit_size[digit_num]; i++)
 								digit[digit_num][i] = (int *)malloc(digit_size[digit_num] * sizeof(int));
 
+							printf("done malloc\n");
+
 							for (i = 0; i < digit_size[digit_num]; i++) // write black to every pixel
 							{
 								for (j = 0; j < digit_size[digit_num]; j++) // write to every pixel in the row
@@ -895,6 +897,8 @@ void digit_separate()
 								}
 							}
 
+							printf("done creating black box\n");
+							
 							// write digit to middle of black box
 							for (i = padding; i < padding + digit_height; i++)
 							{
@@ -903,6 +907,8 @@ void digit_separate()
 									digit[digit_num][i][j] = roi[digit_top + i][digit_left + j];
 								}
 							}
+
+							printf("done placing digit\n");
 							
 
 							for (i = 0; i < digit_size[digit_num]; i++)
