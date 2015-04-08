@@ -15,6 +15,8 @@
 #define WIDTH 640
 #define HEIGHT 480
 #define BW_LEVEL  130
+#define BLACK 0
+#define WHITE 1
 
 // Registers
 #define READ_IN_ADDR  0xFF200090
@@ -41,6 +43,7 @@ int size_x = 0, size_y = 0;
 void region(void);
 void region2(int cols,int mat[][cols]);
 int resize(int height, int width, int** digit);
+int resize2(int height, int width, int** img);
 int recognizer(int data[784]);
 
 int main(void)
@@ -583,6 +586,84 @@ int resize(int height, int width, int** digit){
 
   l = recognizer(digit_vector);
   return l;
+}
+
+int resize2(int height, int width, int** img){
+
+	int scaled_img[28][28];
+	int vector[784];
+	int i,j,k,l;
+	int col = 0, row = 0;	
+
+	//Scales divide by 28 rounded up.	
+	int col_scale = (width + 27)/28;	
+	int row_scale = (height + 27)/28;
+
+	//avg is used to calculate the average white density of a square, given by size square.
+	double avg;
+	double square = x_pixels * y_pixels;
+
+
+	//
+	// Initialize the image to be all black
+	//
+	for(i = 0; i < 28; i++){
+
+		for(j = 0; j < 28; j++)
+			scaled_img[i][j] = BLACK;
+
+	}
+
+	//
+	//Examine the image, magnifying rectangle by rectangle down to 28 = (size - size%28)/scale
+	//where size is the row or column and the scale is the calculated scale rounded up.
+	//	
+	
+	for(i = 0; i < (height - (height%28)); i += row_scale){
+
+		col = 0;
+
+		for(j = 0; j < (width - (width%28)); j += col_scale){
+
+			avg = 0;
+			
+			//
+			//Calculate the average of a square given starting coordinates
+			//
+
+			for(k = 0; k < row_scale && ((i+k) < height); k++){
+				for(l = 0; l < col_scale && ((j+l) < width); l++){
+					avg += img[i+k][j+l];
+				}
+			}
+
+			avg = avg / square;
+
+			if(average >= 0.5){
+				scaled_img[row][col] = WHITE;
+			}
+			else{
+				scaled_img[row][col] = BLACK;
+			}
+			col++;
+	}
+
+		row++;
+	}
+
+	//
+	//Convert the scaled image to a vector for recognizer to use
+	//
+
+  	k = 0;
+  	for(i = 0; i < 28; i++){
+    		for(j = 0; j < 28; j++){
+      		vector[k] = scaled_img[j][i];
+      		k++;
+    	}
+  }
+
+  return recognizer(vector);
 }
 
 
