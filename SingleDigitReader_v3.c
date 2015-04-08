@@ -589,11 +589,14 @@ int resize(int height, int width, int** digit){
 }
 
 int resize2(int height, int width, int** img){
-
 	int scaled_img[28][28];
 	int vector[784];
-	int i,j,k,l;
-	int col = 0, row = 0;	
+
+	//
+	//col and row specify squares. p examines pixels. s is used for the scaled img. v is vector index.
+	//	
+
+	int col,row, p_col, p_row, s_col = 0, s_row = 0, v_index;	
 
 	//Scales divide by 28 rounded up.	
 	int col_scale = (width + 27)/28;	
@@ -601,7 +604,7 @@ int resize2(int height, int width, int** img){
 
 	//avg is used to calculate the average white density of a square, given by size square.
 	double avg;
-	double square = x_pixels * y_pixels;
+	double square = col_scale * row_scale;
 
 
 	//
@@ -619,11 +622,11 @@ int resize2(int height, int width, int** img){
 	//where size is the row or column and the scale is the calculated scale rounded up.
 	//	
 	
-	for(i = 0; i < (height - (height%28)); i += row_scale){
+	for(row = 0; row < (height - (height%28)); row += row_scale){
 
-		col = 0;
+		s_col = 0;
 
-		for(j = 0; j < (width - (width%28)); j += col_scale){
+		for(col = 0; col < (width - (width%28)); col += col_scale){
 
 			avg = 0;
 			
@@ -631,35 +634,35 @@ int resize2(int height, int width, int** img){
 			//Calculate the average of a square given starting coordinates
 			//
 
-			for(k = 0; k < row_scale && ((i+k) < height); k++){
-				for(l = 0; l < col_scale && ((j+l) < width); l++){
-					avg += img[i+k][j+l];
+			for(p_row = 0; p_row < row_scale && ((i+k) < height); p_row++){
+				for(p_col = 0; p_col < col_scale && ((j+l) < width); p_col++){
+					avg += img[row+p_row][col+p_col];
 				}
 			}
 
 			avg = avg / square;
 
 			if(average >= 0.5){
-				scaled_img[row][col] = WHITE;
+				scaled_img[s_row][s_col] = WHITE;
 			}
 			else{
-				scaled_img[row][col] = BLACK;
+				scaled_img[s_row][s_col] = BLACK;
 			}
-			col++;
+			s_col++;
 	}
 
-		row++;
+		s_row++;
 	}
 
 	//
 	//Convert the scaled image to a vector for recognizer to use
 	//
 
-  	k = 0;
-  	for(i = 0; i < 28; i++){
-    		for(j = 0; j < 28; j++){
-      		vector[k] = scaled_img[j][i];
-      		k++;
+  	v_index = 0;
+  	for(s_col = 0; i < 28; i++){
+    		for(s_row = 0; j < 28; j++){
+      		vector[index] = scaled_img[s_row][s_col];
+      		v_index++;
     	}
   }
 
