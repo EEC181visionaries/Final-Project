@@ -1,4 +1,5 @@
-// trimmed_test.c - Reads in a photo and prints out data
+// SingleDigitReader.c - Reads in a photo and prints out data
+//                       Using GLOBAL VARIABLES
 
 // Libraries
 #include <stdlib.h>
@@ -155,6 +156,17 @@ while(1){
     resize();
     M = recognizer();
     printf("Guessed %d\n\n",M);
+
+    // Prints out ROI
+    for (i = 0; i < size_x; i++)
+    {
+      for (j = 0; j < size_y; j++)
+      {
+        printf("%d\t", roi[i][j]);
+      }
+      printf("\n");
+    }
+
   }
 
   return 0;
@@ -166,7 +178,7 @@ void region(void)
   i = HEIGHT/2;
  
   // Left Edge = x
-  for(j = 0; j < WIDTH; j +=25)
+  for(j = 0; j < WIDTH; j +=8)
   {
     prev_val = val;
     if(black_white[i][j] == 1)
@@ -185,7 +197,7 @@ void region(void)
   }
 
   // Right Edge = y
-  for(j = WIDTH; j > 0; j -=25)
+  for(j = WIDTH; j > 0; j -=8)
   {
     prev_val = val;
     if(black_white[i][j] == 1)
@@ -205,7 +217,7 @@ void region(void)
 
   // Top Edge = v
   j = WIDTH/2;
-  for(i = 0; i < HEIGHT; i +=25)
+  for(i = 0; i < HEIGHT; i +=8)
   {
     prev_val = val;
     if(black_white[i][j] == 1)
@@ -224,7 +236,7 @@ void region(void)
   }
 
   // Bottom Edge = w
-  for(i = HEIGHT; i > 0; i -=25)
+  for(i = HEIGHT; i > 0; i -=8)
   {
     prev_val = val;
     if(black_white[i][j] == 1)
@@ -248,7 +260,7 @@ void region(void)
 // Get new x
   i = ((w-v)/2 + v);
   int temp = (x + ((y-x)/2));
-  for(j = x; j < y; j+=5)
+  for(j = x; j < y; j+=4)
   {
     prev_val = val;
     if(black_white[i][j] == 0)
@@ -268,7 +280,7 @@ void region(void)
   }
 
 // Get new y
-  for(j = y; j > x; j-=8)
+  for(j = y; j > x; j-=4)
   {
     prev_val = val;
     if(black_white[i][j] == 0)
@@ -289,7 +301,7 @@ void region(void)
 
 // Get new v
   j = temp;
-  for(i = v; i < w; i+=5)
+  for(i = v; i < w; i+=4)
   {
     prev_val = val;//printf("run\n");
     if(black_white[i][j] == 0)
@@ -309,7 +321,7 @@ void region(void)
   }
 
 // Get new w
-  for(i = w; i > v; i-=5)
+  for(i = w; i > v; i-=4)
   {
     prev_val = val;
     if(black_white[i][j] == 0)
