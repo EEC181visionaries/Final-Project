@@ -15,6 +15,8 @@
 #define HEIGHT 480
 #define BW_LEVEL  130
 #define MAX_DIGITS 5
+#define WHITE 1
+#define BLACK 0
 
 // Registers
 #define READ_IN_ADDR  0xFF200090
@@ -995,7 +997,164 @@ void digit_separate()
 
 } // digit_separate
 
-void digit_separate2()
+void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
 {
+	int r = 0;
+	int mid_row = num_row/2;	
+	int c = 0;
+	int digit***;
+	int last_col = 0;
+	int right_edge = 0;
+	int bad = 0;
+	int col_checker = 0;
+	int first = 1;
+	int digit_num = 0;
+	int row = 0;
+	int col = 0;
+	int digit_top = 0;
+	int digit_bot = 0;
+	int digit_left = 0;
+	int digit_right = 0;
+	int digit_height = 0;
+	int digit_width = 0;
+	int padding = 0;
+	int horz_padding = 0;
 
+	digit = (int ***) malloc(MAX_DIGITS*sizeof(int **));
+	
+	for (c = 0; c < num_col; c = c+4)
+	{
+		if ( (roi[mid_row][c] == WHITE) || (c+4 >= num_col) ) // hit white or end of roi
+		{
+			if (first) // skip the first hit of white
+			{
+				first = 0;
+				pixel = WHITE;
+			}
+			else
+			{
+				if(last_pixel == BLACK) // check if start of digit found
+				{
+					mid_col = (c - right_edge)/2 + right_edge;
+					if (roi[mid_row][c] == WHITE) // skip this section if we've hit the end of the ROI
+					{
+						// start at 4 to size_y-4 to give some buffer for tilted ROI's
+						for (col_checker = 4; col_checker < num_col-4; col_checker++)
+						{
+							if ( roi[col_checker][mid_col] == WHITE)
+							{
+								bad = 1;
+								break;
+							}
+						}
+					} // if (roi[r][c] == WHITE)
+					if (!bad)
+					{
+						if (digit_num < MAX_DIGITS)
+						{
+							// check for top
+							for (row = 4; row < num_row-4; row++)
+							{
+								for (col = last_mid; col < mid; col++)
+								{
+									if (roi[row][col] == WHITE)
+									{
+										digit_top = row;
+										// break out of for loops
+										col = mid;
+										row = num_row;
+									}
+								}
+							}
+							// check for bot
+							for (row = num_row-4 - 1; row >= 4; row--)
+							{
+								for (col = last_mid; col <  mid; col++)
+								{
+									digit_bot = row;
+									
+									col = mid;
+									row = -1;
+								}
+							}
+							digit_height = digit_bot - digit_top;
+							padding = digit_height/5;
+							digit_size[digit_num] = digit_height + padding + padding;
+
+
+							// check for left
+							for (col = last_mid; col < mid; col++)
+							{
+								for (row = 4; row < num_row-4; row++)
+								{
+									if (roi[row][col] == WHITE)
+									{
+										digit_left = col;
+										row = num_row;
+										col = mid;
+									}
+								}
+							}
+							// check for right
+							for (col = mid-1; col >= last_mid; col--)
+							{
+								for (row = 4; row < num_row-4; row++)
+								{
+									if (roi[row][col] == WHITE)
+									{
+										digit_right = col;
+										row = num_row;
+										col = last_mid-1;
+									}
+								}
+							}
+							digit_width = digit_right - digit_left;
+							horz_padding = (digit_size[digit_num] - digit_width)/2;
+
+
+							digit[digit_num] = (int **) malloc(digit_size[digit_num] * sizeof(int*));
+							for (i = 0; i < digit_size[digit_num]; i++)
+								digit[digit_num][i] = (int *)malloc(digit_size[digit_num] * sizeof(int));
+
+
+
+
+
+
+
+
+
+							
+						} // if (digit_num < MAX_DIGITS
+						
+						digit_num++;
+					} // if (!bad)
+				}
+			} // else (first)
+			last_pixel = WHITE;
+		}
+		else	// hit black
+		{
+			if (last_pixel == WHITE)
+			{
+				right_edge = c;
+			}
+			last_pixel = BLACK;
+			pixel = BLACK;
+		}
+		bad = 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+	}
 } // digit_separate2
