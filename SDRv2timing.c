@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include <stdint.h>
 
 #include "finalB1L1.c"
 #include "finalB1L2.c"
@@ -33,7 +34,7 @@
 #define DDR3_ADDR 0x00100000
 
 //timing variables
-clock_t region_1, region_2, resize_1, resize_2, rec_1, rec_2, main_1, main_2, final; 
+clock_t region_1, region_2, resize_1, resize_2, rec_1, rec_2, main_1, main_2, main_3, main_4, main_5, main_6, main_7, final; 
 
 // Computing ROI and Separate Images
 int w, x, y, v, lt, lb, rt, rb;
@@ -86,15 +87,21 @@ while(1){
     for (i = 0; i < 30000; i++)
     {
     }
-      snapshot = 1;
-    main_1 = clock();
+    
+    snapshot = 1;
+    
     if (snapshot)
     {
+//
+      main_1 = clock();
+
       *cam_start = 0; // pause camera
       *clock_select = 1;  // choose custom clock from hps
       *vga_data1 = 0; // reset sdram
       *vga_data1 = 1; 
       *sdram_read = 1;  // set read request to high
+//
+      main_2 = clock();
 
       // clear out first horizontal row, it is all black
       for (k = 0; k < 643; k = k+1)
@@ -108,41 +115,52 @@ while(1){
         *clock_gen = 1;
         *clock_gen = 0;
       }
+//      
+      main_3 = clock();
 
       // begin reading in data
       for (j = 0; j < 480; j = j+1)
       {
-      for (k = 0; k < 640; k = k+1)
-      {
-        for (L = 0; L < 4; L = L+1)
+        for (k = 0; k < 640; k = k+1)
         {
-          *clock_gen = 1; // generate 4 clock cycles, checking each cycle
-          if (!written)
+          for (L = 0; L < 4; L = L+1)
           {
-            if (*read_good) // take in data from verilog to read block (not sure if needed)
+            *clock_gen = 1; // generate 4 clock cycles, checking each cycle
+            if (!written)
             {
-              write_data = *(sdram_data1);
-              if (write_data < BW_LEVEL)  // write black or white
+              if (*read_good) // take in data from verilog to read block (not sure if needed)
               {
-                //*write_block = 0;
-                black_white[j][k] = 0;
+                write_data = *(sdram_data1);
+                if (write_data < BW_LEVEL)  // write black or white
+                {
+                  //*write_block = 0;
+                  black_white[j][k] = 0;
+                }
+                else
+                {
+                  //*write_block = 1;
+                  black_white[j][k] = 1;
+                }
+                //write_block++;
+                written = 1;
               }
-              else
-              {
-                //*write_block = 1;
-                black_white[j][k] = 1;
-              }
-              //write_block++;
-              written = 1;
             }
+            *clock_gen = 0;
           }
-          *clock_gen = 0;
+//          
+//          main_4 = clock();
+           
+          written = 0;
         }
-        written = 0;
+//        
+//        main_5 = clock();
+        
+        *sdram_read = 0;
+        *sdram_read = 1;
       }
-      *sdram_read = 0;
-      *sdram_read = 1;
-      }
+// 
+      main_6 = clock();
+
       *sdram_read = 0;
 
       *vga_data1 = 0;
@@ -157,21 +175,27 @@ while(1){
     }
 
     *(sdram_read) = 0;
-    main_2 = clock();
+//
+    main_7 = clock();
 
     region();
     resize();
     M = recognizer();
     printf("Guessed %d\n\n",M);
-    final = (double)(main_2 - main_1) / CLOCKS_PER_SEC;
-    printf("Times:\nMain: %f\n", final);
-    final = (double)(region_2 - region_1) / CLOCKS_PER_SEC;
-    printf("Region: %f\n", final);
-    final = (double)(resize_2 - resize_1) / CLOCKS_PER_SEC;
-    printf("Resize: %f\n", final);
-    final = (double)(rec_2 - rec_1) / CLOCKS_PER_SEC;
-    printf("Recognize: %f\n", final);
+    
+    printf("1: %llu\n2: %llu\n3: %llu\n4: \n5: \n6: %llu\n7: %lu\n", main_1, main_2, main_3, main_6, main_7);
+    final = (main_2 - main_1);
+    printf("Times:\nMain: %ld\n", final);
+    final = (region_2 - region_1);
+    printf("Region: %llu\n", final);
+    final = (resize_2 - resize_1);
+    printf("Resize: %llu\n", final);
+    final = (rec_2 - rec_1);
+    printf("Recognize: %llu\n", final);
 
+// =========================
+
+/*
     // Prints ROI
     for (i = 0; i < size_x; i++)
     {
@@ -181,8 +205,11 @@ while(1){
       }
       printf("\n");
     }
-  }
+*/
 
+// =======================
+
+  }
   return 0;
 }
 
