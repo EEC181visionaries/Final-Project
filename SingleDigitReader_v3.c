@@ -633,9 +633,9 @@ int resize2(int height, int width, int** img){
 	//
 	// Initialize the image to be all black
 	//
-	for(i = 0; i < 28; i++){
+	for(int i = 0; i < 28; i++){
 
-		for(j = 0; j < 28; j++)
+		for(int j = 0; j < 28; j++)
 			scaled_img[i][j] = BLACK;
 
 	}
@@ -657,8 +657,8 @@ int resize2(int height, int width, int** img){
 			//Calculate the average of a square given starting coordinates
 			//
 
-			for(p_row = 0; p_row < row_scale && ((i+k) < height); p_row++){
-				for(p_col = 0; p_col < col_scale && ((j+l) < width); p_col++){
+			for(p_row = 0; p_row < row_scale && ((row+p_row) < height); p_row++){
+				for(p_col = 0; p_col < col_scale && (col+p_col) < width); p_col++){
 					avg += img[row+p_row][col+p_col];
 				}
 			}
@@ -682,8 +682,8 @@ int resize2(int height, int width, int** img){
 	//
 
   	v_index = 0;
-  	for(s_col = 0; i < 28; i++){
-    		for(s_row = 0; j < 28; j++){
+  	for(s_col = 0; s_col < 28; i++){
+    		for(s_row = 0; s_row < 28; j++){
       		vector[index] = scaled_img[s_row][s_col];
       		v_index++;
     	}
