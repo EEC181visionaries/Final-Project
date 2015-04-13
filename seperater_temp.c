@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 //#include "finalB1L1.c"
 //#include "finalB1L2.c"
@@ -47,18 +48,23 @@ void resize(void);
 int recognizer(void);
 void digit_separate();
 
+// Timing Variables
+// Resources:
+//   http://www.tutorialspoint.com/c_standard_library/c_function_clock.htm
+clock_t regionStart, regionEnd, regionClocks, resizeStart, resizeEnd, resizeClocks;
 
 /*
 	FOR TIMING
 	==================
 	regionStart = clock()
 	regionEnd = clock()
-	regionClocks = regionEnd - regionStart
+	regionClocks = regionEnd - regionStart // Returns clock ticks
+	regionClocks = (double)(regionEnd - regionStart)/CLOCKS_PER_SEC; // Returns time in sec?
 	resizeStart = clock()
 	resizeEnd = clock()
-	regionClocks = regionEnd - regionStart
+	resizeClocks = resizeEnd - resizeStart
 	
-	Do this for every functiona nd main
+	Do this for every function and main
 	
 	
 
