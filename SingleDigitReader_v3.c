@@ -826,6 +826,7 @@ void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
 	int digit_width = 0;
 	int padding = 0;
 	int horz_padding = 0;
+	int guess = 0;
 
 	digit = (int ***) malloc(MAX_DIGITS*sizeof(int **));
 	
@@ -944,11 +945,9 @@ void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
 							}
 							
 							
-							
+// =========================================================
 							// print digit if checking
 							printf("digit number: %d\n", digit_num);
-
-
 							for (i = 0; i < digit_size[digit_num]; i++)
 							{
 								for (j = 0; j < digit_size[digit_num]; j++)
@@ -958,12 +957,14 @@ void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
 								printf("\n");
 							}
 							printf("\n\n\n");
+
+// =========================================================
+
 							
 							// resize digit
-							
-							// pass digit through NN and receive integer
-							// integer = function()
-							
+							guess = resize2( digit_size[digit_num] , digit_size[digit_num] , digit[digit_num] );
+							printf("%d",guess);
+
 							// print single digit
 							
 						} // if (digit_num < MAX_DIGITS
@@ -985,7 +986,6 @@ void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
 		}
 		bad = 0;
 	}
+	printf("\n");
+	printf("Separate and determine done\n");
 } // digit_separate2
-
-
-
