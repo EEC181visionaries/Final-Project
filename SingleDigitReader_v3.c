@@ -1,4 +1,7 @@
-// single_digit_reader_v2.c - Reads in a photo and prints out data
+// SingleDigitReader_v3.c - Reads in a photo and prints out data
+//                          Added region2 - not tested yet
+//                          Added resize2 - not tested yet
+//                          Modified recognizer - not tested yet
 
 // Libraries
 #include <stdlib.h>
