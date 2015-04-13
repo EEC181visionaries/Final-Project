@@ -47,6 +47,25 @@ void resize(void);
 int recognizer(void);
 void digit_separate();
 
+
+/*
+	FOR TIMING
+	==================
+	regionStart = clock()
+	regionEnd = clock()
+	regionClocks = regionEnd - regionStart
+	resizeStart = clock()
+	resizeEnd = clock()
+	regionClocks = regionEnd - regionStart
+	
+	Do this for every functiona nd main
+	
+	
+
+*/
+
+
+
 int main(void)
 {
   volatile int * (cam_start) = (int *) CAM_START; // Output
@@ -1111,12 +1130,27 @@ void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
 							digit_width = digit_right - digit_left;
 							horz_padding = (digit_size[digit_num] - digit_width)/2;
 
-
+							// allocate space for digits
 							digit[digit_num] = (int **) malloc(digit_size[digit_num] * sizeof(int*));
 							for (i = 0; i < digit_size[digit_num]; i++)
 								digit[digit_num][i] = (int *)malloc(digit_size[digit_num] * sizeof(int));
 
-
+							// create black box
+							
+							
+							// place digit in center of black box
+							
+							
+							
+							// print digit if checking
+							
+							
+							// resize digit
+							
+							// pass digit through NN and receive integer
+							// integer = function()
+							
+							// print single digit
 
 
 
