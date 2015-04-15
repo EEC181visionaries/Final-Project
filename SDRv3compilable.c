@@ -38,7 +38,6 @@
 int w, x, y, v, lt, lb, rt, rb;
 int roi[HEIGHT][WIDTH];
 int digit[HEIGHT][WIDTH];
-int size_x = 0, size_y = 0;
 
 
 // Timing Variables
@@ -67,7 +66,7 @@ void region2(int* width,int* height,int **mat);
 int resize(int height, int width, int** digit);
 int resize2(int height, int width, int** img);
 int recognizer(int data[784]);
-void digit_separate2(int num_row, int num_col, int roi[num_row][num_col]);
+void digit_separate2(int num_row, int num_col, int **roi);
 
 int main(void)
 {
@@ -90,7 +89,7 @@ int main(void)
   *clock_select = 0;
   int write_data = 0;
   int written = 0;
-  int height, width;
+  int height = HEIGHT, width = WIDTH;
 
   int** black_white = (int**)malloc(HEIGHT*sizeof(int*));
   for(i = 0; i < 480; i++)
@@ -186,9 +185,24 @@ while(1){
     height = HEIGHT;
     width = WIDTH;
 
+
+	printf("Total Image = %d   %d\n",height, width);
     region2(&width,&height,black_white);
-    M = resize2(height,width,black_white);
-    printf("Guessed %d\n\n",M);
+	
+/*	printf("ROI = %d  x %d\n",height, width);
+	printf("\n\n");
+	for (i = 0; i < height; i++)
+	{
+		for (k = 0; k < width; k++)
+		{
+			printf("%d\t",black_white[i][k]);
+		}
+		printf("\n");
+	} /* */
+	printf("Region Found\n\n");
+	digit_separate2(height,width,black_white);
+    //M = resize2(height,width,black_white);
+    //printf("Guessed %d\n\n",M);
   }
 
   return 0;
@@ -205,12 +219,13 @@ void region2(int* width,int* height,int **mat)
 	int c = 0;
 	int prev_hits = 0;
 	int hits = 0;
+	printf("Initialized\n");
 
   // LROI Left Edge = xLeft
 	for (c = 0; c < cols; c = c + 25)
 	{
 		prev_hits = hits;
-		if (mat[r][c] == 1)
+		if (mat[r][c] == WHITE)
 		{
 			xLeft = c;
 			hits++;
@@ -224,12 +239,13 @@ void region2(int* width,int* height,int **mat)
 			break;
 		}
 	} // for (c = 0;...)
+	printf("left edge = %d\n", xLeft);
 
   // LROI Right Edge = xRight
   for (c = cols; c > 0; c = c - 25)
   {
     prev_hits = hits;
-    if (mat[r][c] == 1)
+    if (mat[r][c] == WHITE)
     {
       xRight = c;
       hits++;
@@ -243,13 +259,14 @@ void region2(int* width,int* height,int **mat)
       break;
     }
   } // for (c = cols;...)
+  printf("right edge = %d\n", xRight);
 
   // LROI Top Edge = yTop
   c = WIDTH/2;
-  for (r = 0; r < rows; c = c + 25)
+  for (r = 0; r < rows; r = r + 25)
   {
     prev_hits = hits;
-    if (mat[r][c] == 1)
+    if (mat[r][c] == WHITE)
     {
       yTop = r;
       hits++;
@@ -263,12 +280,13 @@ void region2(int* width,int* height,int **mat)
       break;
     }
   } // for (r = 0;...)
+  printf("top edge = %d\n", yTop);
 
   // LROI Bottom Edge = yBot
-  for (r = rows; r > 0; c = c - 25)
+  for (r = rows-1; r >= 0; r = r - 25)
   {
     prev_hits = hits;
-    if (mat[r][c] == 1)
+    if (mat[r][c] == WHITE)
     {
       yBot = r;
       hits++;
@@ -283,7 +301,14 @@ void region2(int* width,int* height,int **mat)
     }
   } // for (r = rows;...)
 
+
+  printf("bottom = %d\n", yBot);
   // ROI Left Edge = xLeft
+
+
+
+
+
   r = (yBot+yTop)/2;
   int tempxEdge = (xLeft + xRight)/2;
   for (c = xLeft; c < xRight; c = c + 5)
@@ -304,9 +329,10 @@ void region2(int* width,int* height,int **mat)
       break;
     }
   } // for (c = xLeft;...)
+  printf("left = %d\n", xLeft);
 
   // ROI Right Edge = xRight
-  for (c = xRight; c > xLeft; c = c - 5)
+  for (c = xRight-1; c >= xLeft; c = c - 5)
   {
     prev_hits = hits;
     if (mat[r][c] == 0)
@@ -324,10 +350,11 @@ void region2(int* width,int* height,int **mat)
       break;
     }
   } // for (c = xRight;...)
+  printf("right = %d\n", xRight);
 
   // ROI Top Edge = yTop
   c = tempxEdge;
-  for (r = yTop; r < yBot; c = c + 5)
+  for (r = yTop; r < yBot; r = r + 5)
   {
     prev_hits = hits;
     if (mat[r][c] == 0)
@@ -345,9 +372,10 @@ void region2(int* width,int* height,int **mat)
       break;
     }
   } // for (r = yTop;...)
+  printf("top = %d\n", yTop);
 
   // ROI Bottom Edge = yBot
-  for (r = yBot; r > yTop; c = c - 5)
+  for (r = yBot-1; r >= yTop; r = r - 5)
   {
     prev_hits = hits;
     if (mat[r][c] == 0)
@@ -365,17 +393,20 @@ void region2(int* width,int* height,int **mat)
       break;
     }
   } // for (r = yBot;...)
+  printf("bot = %d\n", yBot);
 
   // Move region of interest to (0,0) of existing array mat[r][c]
   (*width) = xRight - xLeft;
   (*height) = yBot - yTop;
-  for (r = 0; r < size_y; r = r + 1)
+  printf("sizing\n");
+  for (r = 0; r < *height; r++)
   {
-    for (c = 0; c < size_x; c = c +1)
+    for (c = 0; c < *width; c++)
     {
       mat[r][c] = mat[yTop + r][xLeft + c];
     } // for (c = xLeft;...)
   } // for (r = yTop;...)
+
   
 } // region
 
@@ -463,7 +494,7 @@ int resize2(int height, int width, int** img){
 			scaled_img[i][j] = BLACK;
 
 	}
-
+	printf("initialized black box\n");
 	//
 	//Examine the image, magnifying rectangle by rectangle down to 28 = (size - size%28)/scale
 	//where size is the row or column and the scale is the calculated scale rounded up.
@@ -473,7 +504,8 @@ int resize2(int height, int width, int** img){
 
 		s_col = 0;
 
-		for(col = 0; col < (width - (width%28)); col += col_scale){
+		for(col = 0; col < (width - (width%28)); col += col_scale)
+		{
 
 			avg = 0;
 			
@@ -481,37 +513,53 @@ int resize2(int height, int width, int** img){
 			//Calculate the average of a square given starting coordinates
 			//
 
-			for(p_row = 0; p_row < row_scale && ((row+p_row) < height); p_row++){
-				for(p_col = 0; p_col < col_scale && ((col+p_col) < width); p_col++){
+			for(p_row = 0; p_row < row_scale && ((row+p_row) < height); p_row++)
+			{
+				for(p_col = 0; p_col < col_scale && ((col+p_col) < width); p_col++)
+				{
 					avg += img[row+p_row][col+p_col];
 				}
 			}
 
 			avg = avg / square;
 
-			if(avg >= 0.5){
+			if(avg >= 0.5)
+			{
 				scaled_img[s_row][s_col] = WHITE;
 			}
-			else{
+			else
+			{
 				scaled_img[s_row][s_col] = BLACK;
 			}
 			s_col++;
-	}
+		}
 
 		s_row++;
 	}
-
+	printf("resized\n");
 	//
 	//Convert the scaled image to a vector for recognizer to use
 	//
 
   	v_index = 0;
-  	for(s_col = 0; s_col < 28; i++){
-    		for(s_row = 0; s_row < 28; j++){
+  	for(s_col = 0; s_col < 28; s_col++)
+	{
+    	for(s_row = 0; s_row < 28; s_row++)
+		{
       		vector[v_index] = scaled_img[s_row][s_col];
       		v_index++;
-    	}
-  }
+		}
+	}
+
+	int k = 0;
+	for (i = 0; i < 28; i++)
+	{
+		for (k = 0; k < 28; k++)
+		{
+			printf("%d\t",scaled_img[i][k]);
+		}
+		printf("\n");
+	}
 
   return recognizer(vector);
 }
@@ -615,13 +663,12 @@ int recognizer(int data[784])
     return M;
 }
 
-void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
+void digit_separate2(int num_row, int num_col, int **roi)
 {
 
 	int mid_row = num_row/2;	
 	int c = 0;
-	int i = 0;
-	int j = 0;
+	
 	int ***digit;
 
 	int right_edge = 0;
@@ -649,7 +696,7 @@ void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
 	int horz_padding = 0;
 
 	digit = (int ***) malloc(MAX_DIGITS*sizeof(int **));
-	
+	printf("Allocated int***\n");
 	for (c = 0; c < num_col; c = c+4)
 	{
 		if ( (roi[mid_row][c] == WHITE) || (c+4 >= num_col) ) // hit white or end of roi
@@ -705,10 +752,15 @@ void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
 									row = -1;
 								}
 							}
+							printf("digit_top = %d\n digit_bot = %d\n",digit_top,digit_bot);
+
 							digit_height = digit_bot - digit_top;
 							padding = digit_height/5;
+
 							digit_size[digit_num] = digit_height + padding + padding;
 
+							printf("digit_height = %d\n padding = %d\n",digit_height,padding);
+							printf("digit_size[digit_num] = %d\n",digit_size[digit_num]);
 
 							// check for left
 							for (col = last_mid; col < mid; col++)
@@ -738,6 +790,10 @@ void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
 							}
 							digit_width = digit_right - digit_left;
 							horz_padding = (digit_size[digit_num] - digit_width)/2;
+
+
+							int i = 0;
+							int j = 0;
 
 							// allocate space for digits
 							digit[digit_num] = (int **) malloc(digit_size[digit_num] * sizeof(int*));
@@ -807,6 +863,5 @@ void digit_separate2(int num_row, int num_col, int roi[num_row][num_col])
 		bad = 0;
 	}
 } // digit_separate2
-
 
 
