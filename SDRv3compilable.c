@@ -47,6 +47,7 @@ int digit[HEIGHT][WIDTH];
 //   http://www.tutorialspoint.com/c_standard_library/c_function_clock.htm
 clock_t regionStart, regionEnd, regionClocks, resizeStart, resizeEnd, resizeClocks;
 unsigned int LROIstart, LROIend, SROIstart, SROIend, ROImovStart, ROImovEnd;
+unsigned int resizeStart, resizeEnd, resizeMovStart, resizeMovEnd;
 
 /*
 	FOR TIMING
@@ -509,6 +510,9 @@ int resize2(int height, int width, int** img){
 	// Initialize the image to be all black
 	//
 	int i, j;
+	
+//
+	resizeStart = getCycles();
 	for(i = 0; i < 28; i++){
 
 		for(j = 0; j < 28; j++)
@@ -557,11 +561,14 @@ int resize2(int height, int width, int** img){
 
 		s_row++;
 	}
+//
+	resizeEnd = getCycles();
+	
 	printf("resized\n");
 	//
 	//Convert the scaled image to a vector for recognizer to use
 	//
-
+	resizeMovStart = getCycles();
   	v_index = 0;
   	for(s_col = 0; s_col < 28; s_col++)
 	{
@@ -571,6 +578,9 @@ int resize2(int height, int width, int** img){
       		v_index++;
 		}
 	}
+	
+//
+	resizeMovEnd = getCycles();
 
 	int k = 0;
 	for (i = 0; i < 28; i++)
