@@ -34,7 +34,16 @@
 #define DDR3_ADDR 0x00100000
 
 //timing variables
-clock_t region_1, region_2, resize_1, resize_2, rec_1, rec_2, main_1, main_2, main_3, main_4, main_5, main_6, main_7, final; 
+unsigned int region_1, resize_1, rec_1, rec_2, main_1, main_2, main_3, main_4, main_5, main_6, main_7, final; 
+unsigned int LROIstart, LROIend, SROIstart, SROIend, ROImovStart, ROImovEnd;
+unsigned int resizeStart, resizeEnd, resizeMovStart, resizeMovEnd;
+unsigned int MMstart1, MMend1, vstart1, vend1, sigStart1, sigEnd1, MMstart2, MMend2, vstart2, vend2, sigStart2, sigEnd2, MMstart3, MMend3, maxStart, maxEnd;
+
+
+
+
+unsigned int cycle[100];
+
 
 // Computing ROI and Separate Images
 int w, x, y, v, lt, lb, rt, rb;
@@ -49,6 +58,9 @@ void region(void);
 void region2(int cols,int rows, int mat[rows][cols]);
 void resize(void);
 int recognizer(void);
+static inline unsigned int getCycles ();
+static inline void initCounters ();
+
 
 int main(void)
 {
@@ -93,7 +105,11 @@ while(1){
     if (snapshot)
     {
 //
-      main_1 = clock();
+	int cycleCounter = 0;
+	int cycleIndex = 0;
+      initCounters();
+
+	  main_1 = getCycles();
 
       *cam_start = 0; // pause camera
       *clock_select = 1;  // choose custom clock from hps
@@ -101,7 +117,7 @@ while(1){
       *vga_data1 = 1; 
       *sdram_read = 1;  // set read request to high
 //
-      main_2 = clock();
+      main_2 = getCycles();
 
       // clear out first horizontal row, it is all black
       for (k = 0; k < 643; k = k+1)
@@ -116,7 +132,7 @@ while(1){
         *clock_gen = 0;
       }
 //      
-      main_3 = clock();
+      main_3 = getCycles();
 
       // begin reading in data
       for (j = 0; j < 480; j = j+1)
@@ -157,9 +173,16 @@ while(1){
         
         *sdram_read = 0;
         *sdram_read = 1;
+		cycleCounter++;
+		if (cycleCounter == 48)
+		{
+			cycleCounter = 0;
+			cycle[cycleIndex] = getCycles();
+			cycleIndex++;
+		}
       }
 // 
-      main_6 = clock();
+      main_6 = getCycles();
 
       *sdram_read = 0;
 
@@ -176,22 +199,51 @@ while(1){
 
     *(sdram_read) = 0;
 //
-    main_7 = clock();
+    main_7 = getCycles();
 
+	region_1 = getCycles();
     region();
+	resize_1 = getCycles();
     resize();
+	rec_1 = getCycles();
     M = recognizer();
+	rec_2 = getCycles();
     printf("Guessed %d\n\n",M);
+
+	for (i = 0; i < 10; i++)
+		printf("%d:\t %u\n",i+1,cycle[i]);
     
-    printf("1: %llu\n2: %llu\n3: %llu\n4: \n5: \n6: %llu\n7: %lu\n", main_1, main_2, main_3, main_6, main_7);
-    final = (main_2 - main_1);
-    printf("Times:\nMain: %ld\n", final);
-    final = (region_2 - region_1);
-    printf("Region: %llu\n", final);
-    final = (resize_2 - resize_1);
-    printf("Resize: %llu\n", final);
+    printf("\n1: \t%d\n2: \t%d\n3: \t%d\n4: \n5: \n6: \t%d\n7: \t%d\n", main_1, main_2, main_3, main_6, main_7);
+
+    final = (main_7 - main_1);
+    printf("\nTimes:\nMain: \t%d\n\n", final);
+
+	final = (resize_1 - region_1);
+    printf("Region: \t%d\n", final);
+	printf("\tBreakdown:\n");
+	printf("\t Large ROI:\t%d\n", LROIend - LROIstart);
+	printf("\t Small ROI:\t%d\n", SROIend - SROIstart);
+	printf("\t Array assignmet:\t%d\n\n", ROImovEnd - ROImovStart);
+
+    final = (rec_1 - resize_1);
+    printf("Resize: \t%d\n", final);
+	printf("\tBreakdown:\n");
+	printf("\t resizing:\t%d\n", resizeEnd - resizeStart);
+	printf("\t Array assignment:\t%d\n\n", resizeMovEnd - resizeMovStart);
+
+
     final = (rec_2 - rec_1);
-    printf("Recognize: %llu\n", final);
+    printf("Recognize: \t%d\n", final);
+	printf("\tBreakdown:\n");
+	printf("\t First matrix mult:\t%d\n", MMend1 - MMstart1);
+	printf("\t First vector addition:\t%d\n", vend1 - vstart1);
+	printf("\t First sigmoid:\t%d\n", sigEnd1 -sigStart1);
+	printf("\t 2nd matrix mult:\t%d\n", MMend2 - MMstart2);
+	printf("\t 2nd vector addition:\t%d\n", vend2 - vstart2);
+	printf("\t 2nd sigmoid:\t%d\n", sigEnd2 - sigStart2);
+	printf("\t 3rd matrix mult:\t%d\n", MMend3 - MMstart3);
+	printf("\t Determining digit:\t%d\n\n", maxEnd - maxStart);
+
 
 // =========================
 
@@ -215,10 +267,12 @@ while(1){
 
 void region(void)
 {
-  region_1 = clock();
+//  region_1 = clock();
   int val = 0, i, j, prev_val;
   i = HEIGHT/2;
  
+  LROIstart = getCycles();
+
   // Left Edge = x
   for(j = 0; j < WIDTH; j +=8)
   {
@@ -296,12 +350,18 @@ void region(void)
     }
   }//for i
 
+
+  LROIend = getCycles();
+
 // Print LROI
   //printf("%d, %d, %d, %d\n", x, y, v, w);
 
 // Get new x
   i = ((w-v)/2 + v);
   int temp = (x + ((y-x)/2));
+
+  SROIstart = getCycles();
+
   for(j = x; j < y; j+=4)
   {
     prev_val = val;
@@ -381,7 +441,10 @@ void region(void)
       break;
     }
   }
+
+  SROIend = getCycles();
 	
+  ROImovStart = getCycles();
 
 // Move region of interest into new array
   int tempx = 0, tempy = 0;
@@ -398,7 +461,9 @@ void region(void)
   }
   size_x = tempx;
   size_y = tempy;
-  region_2 = clock();
+
+  ROImovEnd = getCycles();
+//  region_2 = clock();
   //printf("%d, %d, %d, %d\n", x, y, v, w);
 
 }//region()
@@ -588,7 +653,7 @@ void region2(int cols,int rows,int mat[rows][cols])
 
 void resize(void){
 
-	resize_1 = clock();
+//	resize_1 = clock();
 	int digits[size_y][size_x];
 	int i,j;
 	int x_pixels = size_x/28;
@@ -602,7 +667,7 @@ void resize(void){
 	double square = x_pixels * y_pixels;
 	int digitsx = 0, digitsy = 0;//These are the pixels of the scaled down digit		
 
-
+	resizeStart = getCycles();
 	for(i = x_start; i < x_end; i += x_pixels){
 		digitsy = 0;
 		for(j = y_start; j < y_end; j += y_pixels){
@@ -621,6 +686,9 @@ void resize(void){
 		}
 		digitsx++;	
   }
+	resizeEnd = getCycles();
+
+	resizeMovStart = getCycles();
   k = 0;
   for(i = 0; i < 28; i++)
   {
@@ -630,20 +698,21 @@ void resize(void){
       k++;
     }
   }
+  resizeMovEnd = getCycles();
 	
-  resize_2 = clock();
+//  resize_2 = clock();
 }
 
 int recognizer(void)
 {
 
-  rec_1 = clock();
+//  rec_1 = clock();
   long double Vb1[200], Vb2[200], Vb3[10]; // array[row][col]
   int M = 0;
   int i,j;
   long double sum = 0;
   
-  
+  MMstart1 = getCycles();
   // Vb1 = finalW1L1*data;
   for (i = 0; i < 200; i++)
   {
@@ -654,22 +723,25 @@ int recognizer(void)
     Vb1[i] = sum;
     sum = 0;
   } // Product into new Matrix
-  
-  
+  MMend1 = getCycles();
+  vstart1 = getCycles();
   //Vb1 = Vb1 + finalB1L1;
   for (i = 0; i < 200; i ++)
   {
     Vb1[i] = Vb1[i] + finalB1L1[i];
   } // Matrix Addition
+  vend1 = getCycles();
   
-  
+
+  sigStart1 = getCycles();
   //Vb1 = sigmf(Vb1,[1 0]);
   for (i = 0; i < 200; i++)
   {
     Vb1[i] = 1/(1+exp(-Vb1[i]));
   } // Sigmoid
+  sigEnd1 = getCycles();
   
-  
+  MMstart2 = getCycles();
   //Vb1 = finalW1L2*Vb1;
   for (i = 0; i < 200; i++)
   {
@@ -680,22 +752,25 @@ int recognizer(void)
     Vb2[i] = sum;
     sum = 0;
   } // Product into old Matrix
+  MMend2 = getCycles();
   
-  
+  vstart2 = getCycles();
   //Vb1 = Vb1 + finalB1L2;
   for (i = 0; i < 200; i ++)
   {
     Vb2[i] = Vb2[i] + finalB1L2[i];
   } // Matrix Addition
+  vend2 = getCycles();
 
-
+  sigStart2 = getCycles();
   //Vb1 = sigmf(Vb1,[1 0]);
   for (i = 0; i < 200; i++)
   {
     Vb2[i] = 1/(1+exp(-Vb2[i]));
   } // Sigmoid
+  sigEnd2 = getCycles();
   
-  
+  MMstart3 = getCycles();
   //Vb1 = finalSoftmaxTheta*Vb1;          finalSoftmaxTheta[10][200]
   for (i = 0; i < 10; i++)
   {
@@ -706,8 +781,9 @@ int recognizer(void)
     Vb3[i] = sum;
     sum = 0;
   } // 
-  
+  MMend3 = getCycles();
  
+  maxStart = getCycles();
   //M = find(Vb1==max(Vb1));
   double max = 0;
   for (i = 0; i < 10; i++)
@@ -718,7 +794,7 @@ int recognizer(void)
       M = i + 1;
     }
   } // Finding Max Value
-  
+  maxEnd = getCycles();
   
   // Check for Zero
   //if(M == 10)
@@ -731,11 +807,31 @@ int recognizer(void)
 
 
   //output = M;
-  rec_2 = clock();
+//  rec_2 = clock();
     return M;
 }
 
 
+static inline unsigned int getCycles ()
+{
+  unsigned int cycleCount;
+  // Read CCNT register
+  asm volatile ("MRC p15, 0, %0, c9, c13, 0\t\n": "=r"(cycleCount));  
+  return cycleCount;
+}
 
-
+static inline void initCounters ()
+{
+  // Enable user access to performance counter
+  asm volatile ("MCR p15, 0, %0, C9, C14, 0\t\n" :: "r"(1));
+  // Reset all counters to zero
+  int MCRP15ResetAll = 23; 
+  asm volatile ("MCR p15, 0, %0, c9, c12, 0\t\n" :: "r"(MCRP15ResetAll));  
+  // Enable all counters:  
+  asm volatile ("MCR p15, 0, %0, c9, c12, 1\t\n" :: "r"(0x8000000f));  
+  // Disable counter interrupts
+  asm volatile ("MCR p15, 0, %0, C9, C14, 2\t\n" :: "r"(0x8000000f));
+  // Clear overflows:
+  asm volatile ("MCR p15, 0, %0, c9, c12, 3\t\n" :: "r"(0x8000000f));
+}
 
