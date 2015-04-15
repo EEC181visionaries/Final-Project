@@ -1,4 +1,5 @@
-// single_digit_reader_v2.c - Reads in a photo and prints out data
+// SDRv3compatible.c - region2, resize2, and recognizer2 complied and working
+//                     separater2 not working
 
 // Libraries
 #include <stdlib.h>
