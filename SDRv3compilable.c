@@ -657,7 +657,7 @@ int recognizer(int data[784])
   long double sum = 0;
   
 //
-  MMStart1 = getCycles();
+  MMstart1 = getCycles();
   // Vb1 = finalW1L1*data;
   for (i = 0; i < 200; i++)
   {
