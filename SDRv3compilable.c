@@ -43,35 +43,22 @@ int digit[HEIGHT][WIDTH];
 
 
 // Timing Variables
-// Resources:
-//   http://www.tutorialspoint.com/c_standard_library/c_function_clock.htm
-clock_t regionStart, regionEnd, regionClocks, resizeStart, resizeEnd, resizeClocks;
+unsigned int region_1, resize_1, rec_1, rec_2, main_1, main_2, main_3, main_4, main_5, main_6, main_7, final; 
 unsigned int LROIstart, LROIend, SROIstart, SROIend, ROImovStart, ROImovEnd;
 unsigned int resizeStart, resizeEnd, resizeMovStart, resizeMovEnd;
 unsigned int MMstart1, MMend1, vstart1, vend1, sigStart1, sigEnd1, MMstart2, MMend2, vstart2, vend2, sigStart2, sigEnd2, MMstart3, MMend3, maxStart, maxEnd;
 
-/*
-	FOR TIMING
-	==================
-	regionStart = clock()
-	regionEnd = clock()
-	regionClocks = regionEnd - regionStart // Returns clock ticks
-	regionClocks = (double)(regionEnd - regionStart)/CLOCKS_PER_SEC; // Returns time in sec?
-	resizeStart = clock()
-	resizeEnd = clock()
-	resizeClocks = resizeEnd - resizeStart
-	
-	Do this for every function and main
+unsigned int cycle[100];
 
-*/
-
-// List of functions
-void region(void);
+// List of Functions
+//void region(void);
 void region2(int* width,int* height,int **mat);
-int resize(int height, int width, int** digit);
+//int resize(int height, int width, int** digit);
 int resize2(int height, int width, int** img);
 int recognizer(int data[784]);
 void digit_separate2(int num_row, int num_col, int **roi);
+static inline unsigned int getCycles ();
+static inline void initCounters ();
 
 int main(void)
 {
@@ -119,11 +106,20 @@ while(1){
       snapshot = 1;
     if (snapshot)
     {
+//
+      int cycleCounter = 0;
+      int cycleIndex = 0;
+      initCounters();
+      main_1 = getCycles();
+
       *cam_start = 0; // pause camera
       *clock_select = 1;  // choose custom clock from hps
       *vga_data1 = 0; // reset sdram
       *vga_data1 = 1; 
       *sdram_read = 1;  // set read request to high
+
+//
+      main_2 = getCycles();
 
       // clear out first horizontal row, it is all black
       for (k = 0; k < 643; k = k+1)
@@ -137,6 +133,9 @@ while(1){
         *clock_gen = 1;
         *clock_gen = 0;
       }
+
+//      
+      main_3 = getCycles();
 
       // begin reading in data
       for (j = 0; j < 480; j = j+1)
@@ -171,7 +170,20 @@ while(1){
       }
       *sdram_read = 0;
       *sdram_read = 1;
+
+//
+        if (cycleCounter == 48)
+        {
+          cycleCounter = 0;
+          cycle[cycleIndex] = getCycles();
+          cycleIndex++;
+        }
+
       }
+
+// 
+      main_3 = getCycles();
+
       *sdram_read = 0;
 
       *vga_data1 = 0;
@@ -187,12 +199,16 @@ while(1){
 
     *(sdram_read) = 0;
 
+//
+    main_4 = getCycles();
+
     height = HEIGHT;
     width = WIDTH;
 
-
-	printf("Total Image = %d   %d\n",height, width);
+    //printf("Total Image = %d   %d\n",height, width);
+    region_1 = getCycles();
     region2(&width,&height,black_white);
+    resize_1 = getCycles();
 	
 /*	printf("ROI = %d  x %d\n",height, width);
 	printf("\n\n");
@@ -204,10 +220,46 @@ while(1){
 		}
 		printf("\n");
 	} /* */
-	printf("Region Found\n\n");
-	digit_separate2(height,width,black_white);
-    //M = resize2(height,width,black_white);
-    //printf("Guessed %d\n\n",M);
+	//printf("Region Found\n\n");
+	//digit_separate2(height,width,black_white);
+    M = resize2(height,width,black_white);
+    rec_2 = getCycles();
+    printf("Guessed %d\n\n",M);
+    
+    	for (i = 0; i < 10; i++)
+		printf("%d:\t %u\n",i+1,cycle[i]);
+    
+    printf("\n1: \t%d\n2: \t%d\n3: \t%d\n4: \n5: \n6: \t%d\n7: \t%d\n", main_1, main_2, main_3, main_6, main_7);
+
+    final = (main_7 - main_1);
+    printf("\nTimes:\nMain: \t%d\n\n", final);
+
+	final = (resize_1 - region_1);
+    printf("Region: \t%d\n", final);
+	printf("\tBreakdown:\n");
+	printf("\t Large ROI:\t%d\n", LROIend - LROIstart);
+	printf("\t Small ROI:\t%d\n", SROIend - SROIstart);
+	printf("\t Array assignmet:\t%d\n\n", ROImovEnd - ROImovStart);
+
+    final = (rec_1 - resize_1);
+    printf("Resize: \t%d\n", final);
+	printf("\tBreakdown:\n");
+	printf("\t resizing:\t%d\n", resizeEnd - resizeStart);
+	printf("\t Array assignment:\t%d\n\n", resizeMovEnd - resizeMovStart);
+
+
+    final = (rec_2 - rec_1);
+    printf("Recognize: \t%d\n", final);
+	printf("\tBreakdown:\n");
+	printf("\t First matrix mult:\t%d\n", MMend1 - MMstart1);
+	printf("\t First vector addition:\t%d\n", vend1 - vstart1);
+	printf("\t First sigmoid:\t%d\n", sigEnd1 -sigStart1);
+	printf("\t 2nd matrix mult:\t%d\n", MMend2 - MMstart2);
+	printf("\t 2nd vector addition:\t%d\n", vend2 - vstart2);
+	printf("\t 2nd sigmoid:\t%d\n", sigEnd2 - sigStart2);
+	printf("\t 3rd matrix mult:\t%d\n", MMend3 - MMstart3);
+	printf("\t Determining digit:\t%d\n\n", maxEnd - maxStart);
+    
   }
 
   return 0;
@@ -592,7 +644,7 @@ int resize2(int height, int width, int** img){
 		}
 		printf("\n");
 	}
-
+  rec_1 = getCycles();
   return recognizer(vector);
 }
 
