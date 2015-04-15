@@ -48,6 +48,7 @@ int digit[HEIGHT][WIDTH];
 clock_t regionStart, regionEnd, regionClocks, resizeStart, resizeEnd, resizeClocks;
 unsigned int LROIstart, LROIend, SROIstart, SROIend, ROImovStart, ROImovEnd;
 unsigned int resizeStart, resizeEnd, resizeMovStart, resizeMovEnd;
+unsigned int MMstart1, MMend1, vstart1, vend1, sigStart1, sigEnd1, MMstart2, MMend2, vstart2, vend2, sigStart2, sigEnd2, MMstart3, MMend3, maxStart, maxEnd;
 
 /*
 	FOR TIMING
