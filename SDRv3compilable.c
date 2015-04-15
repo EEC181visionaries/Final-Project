@@ -46,6 +46,7 @@ int digit[HEIGHT][WIDTH];
 // Resources:
 //   http://www.tutorialspoint.com/c_standard_library/c_function_clock.htm
 clock_t regionStart, regionEnd, regionClocks, resizeStart, resizeEnd, resizeClocks;
+unsigned int LROIstart, LROIend, SROIstart, SROIend, ROImovStart, ROImovEnd;
 
 /*
 	FOR TIMING
@@ -223,6 +224,9 @@ void region2(int* width,int* height,int **mat)
 	int hits = 0;
 	printf("Initialized\n");
 
+//
+	LROIstart = getCycles();
+
   // LROI Left Edge = xLeft
 	for (c = 0; c < cols; c = c + 25)
 	{
@@ -303,6 +307,8 @@ void region2(int* width,int* height,int **mat)
     }
   } // for (r = rows;...)
 
+//
+  LROIend = getCycles();
 
   printf("bottom = %d\n", yBot);
   // ROI Left Edge = xLeft
@@ -310,9 +316,12 @@ void region2(int* width,int* height,int **mat)
 
 
 
-
   r = (yBot+yTop)/2;
   int tempxEdge = (xLeft + xRight)/2;
+
+//
+  SROIstart = getCycles();
+
   for (c = xLeft; c < xRight; c = c + 5)
   {
     prev_hits = hits;
@@ -395,12 +404,20 @@ void region2(int* width,int* height,int **mat)
       break;
     }
   } // for (r = yBot;...)
+
+//
+  SROIend = getCycles();
+
   printf("bot = %d\n", yBot);
 
+  printf("sizing\n");
   // Move region of interest to (0,0) of existing array mat[r][c]
   (*width) = xRight - xLeft;
   (*height) = yBot - yTop;
-  printf("sizing\n");
+
+//
+  ROImovStart = GetCycles();
+
   for (r = 0; r < *height; r++)
   {
     for (c = 0; c < *width; c++)
@@ -409,6 +426,8 @@ void region2(int* width,int* height,int **mat)
     } // for (c = xLeft;...)
   } // for (r = yTop;...)
 
+//
+  ROImovEnd = getCycles();
   
 } // region
 
