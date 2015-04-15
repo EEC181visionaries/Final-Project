@@ -603,7 +603,8 @@ int recognizer(int data[784])
   int i,j;
   long double sum = 0;
   
-  
+//
+  MMStart1 = getCycles();
   // Vb1 = finalW1L1*data;
   for (i = 0; i < 200; i++)
   {
@@ -614,22 +615,31 @@ int recognizer(int data[784])
     Vb1[i] = sum;
     sum = 0;
   } // Product into new Matrix
+ 
+//
+  MMend1 = getCycles();
   
-  
+//
+  vstart1 = getCycles();
   //Vb1 = Vb1 + finalB1L1;
   for (i = 0; i < 200; i ++)
   {
     Vb1[i] = Vb1[i] + finalB1L1[i];
   } // Matrix Addition
-  
+//
+  vend1 = getCycles();
+//
+  sigStart1 = getCycles();
   
   //Vb1 = sigmf(Vb1,[1 0]);
   for (i = 0; i < 200; i++)
   {
     Vb1[i] = 1/(1+exp(-Vb1[i]));
   } // Sigmoid
-  
-  
+//  
+  sigEnd1 = getCycles();
+//
+  MMstart2 = getCycles();
   //Vb1 = finalW1L2*Vb1;
   for (i = 0; i < 200; i++)
   {
@@ -640,21 +650,29 @@ int recognizer(int data[784])
     Vb2[i] = sum;
     sum = 0;
   } // Product into old Matrix
-  
-  
+//  
+  MMend2 = getCycles();
+//
+  vstart2 = getCycles();
   //Vb1 = Vb1 + finalB1L2;
   for (i = 0; i < 200; i ++)
   {
     Vb2[i] = Vb2[i] + finalB1L2[i];
   } // Matrix Addition
-
-
+// 
+  vend2 = getCycles();
+//
+  sigStart2 = getCycles();
+  
   //Vb1 = sigmf(Vb1,[1 0]);
   for (i = 0; i < 200; i++)
   {
     Vb2[i] = 1/(1+exp(-Vb2[i]));
   } // Sigmoid
-  
+//
+  sigEnd2 = getCycles();
+//
+  MMstart3 = getCycles();
   
   //Vb1 = finalSoftmaxTheta*Vb1;          finalSoftmaxTheta[10][200]
   for (i = 0; i < 10; i++)
@@ -666,6 +684,10 @@ int recognizer(int data[784])
     Vb3[i] = sum;
     sum = 0;
   } // 
+//  
+  MMend3 = getCycles();
+// 
+  maxStart = getCycles();
   
  
   //M = find(Vb1==max(Vb1));
@@ -678,7 +700,8 @@ int recognizer(int data[784])
       M = i + 1;
     }
   } // Finding Max Value
-  
+//
+  maxEnd = getCycles();
   
   // Check for Zero
   //if(M == 10)
