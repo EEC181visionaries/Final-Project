@@ -780,7 +780,6 @@ void digit_separate2(int num_row, int num_col, int **roi)
 
 	int right_edge = 0;
 	int bad = 0;
-	int col_checker = 0;
 	int first = 1;
 	int digit_num = 0;
 	int row = 0;
@@ -790,7 +789,7 @@ void digit_separate2(int num_row, int num_col, int **roi)
 	int pixel = 0;
 	int mid_col = 0;
 	int last_mid = 0;
-	int mid = 0;
+
 
 	int digit_size[5] = {0};
 	int digit_top = 0;
@@ -803,7 +802,6 @@ void digit_separate2(int num_row, int num_col, int **roi)
 	int horz_padding = 0;
 
 	digit = (int ***) malloc(MAX_DIGITS*sizeof(int **));
-	printf("Allocated int***\n");
 	for (c = 0; c < num_col; c = c+4)
 	{
 		if ( (roi[mid_row][c] == WHITE) || (c+4 >= num_col) ) // hit white or end of roi
@@ -821,9 +819,9 @@ void digit_separate2(int num_row, int num_col, int **roi)
 					if (roi[mid_row][c] == WHITE) // skip this section if we've hit the end of the ROI
 					{
 						// start at 4 to size_y-4 to give some buffer for tilted ROI's
-						for (col_checker = 4; col_checker < num_col-4; col_checker++)
+						for (row = 4; row < num_row-4; row++)
 						{
-							if ( roi[col_checker][mid_col] == WHITE)
+							if ( roi[row][mid_col] == WHITE)
 							{
 								bad = 1;
 								break;
@@ -837,13 +835,13 @@ void digit_separate2(int num_row, int num_col, int **roi)
 							// check for top
 							for (row = 4; row < num_row-4; row++)
 							{
-								for (col = last_mid; col < mid; col++)
+								for (col = last_mid; col < mid_col; col++)
 								{
 									if (roi[row][col] == WHITE)
 									{
 										digit_top = row;
 										// break out of for loops
-										col = mid;
+										col = mid_col;
 										row = num_row;
 									}
 								}
@@ -851,26 +849,25 @@ void digit_separate2(int num_row, int num_col, int **roi)
 							// check for bot
 							for (row = num_row-4 - 1; row >= 4; row--)
 							{
-								for (col = last_mid; col <  mid; col++)
+								for (col = last_mid; col <  mid_col; col++)
 								{
 									digit_bot = row;
-									
-									col = mid;
-									row = -1;
+									if (roi[row][col] == WHITE)
+									{
+										col = mid_col;
+										row = -1;
+									}
 								}
 							}
-							printf("digit_top = %d\n digit_bot = %d\n",digit_top,digit_bot);
 
 							digit_height = digit_bot - digit_top;
 							padding = digit_height/5;
 
 							digit_size[digit_num] = digit_height + padding + padding;
 
-							printf("digit_height = %d\n padding = %d\n",digit_height,padding);
-							printf("digit_size[digit_num] = %d\n",digit_size[digit_num]);
 
 							// check for left
-							for (col = last_mid; col < mid; col++)
+							for (col = last_mid; col < mid_col; col++)
 							{
 								for (row = 4; row < num_row-4; row++)
 								{
@@ -878,19 +875,19 @@ void digit_separate2(int num_row, int num_col, int **roi)
 									{
 										digit_left = col;
 										row = num_row;
-										col = mid;
+										col = mid_col;
 									}
 								}
 							}
 							// check for right
-							for (col = mid-1; col >= last_mid; col--)
+							for (col = mid_col-1; col >= last_mid; col--)
 							{
 								for (row = 4; row < num_row-4; row++)
 								{
 									if (roi[row][col] == WHITE)
 									{
 										digit_right = col;
-										row = num_row;
+						last_pixel = WHITE;							row = num_row;
 										col = last_mid-1;
 									}
 								}
@@ -916,7 +913,7 @@ void digit_separate2(int num_row, int num_col, int **roi)
 								}
 							}
 
-							printf("done creating black box\n");
+
 							
 							// write digit to middle of black box
 							for (i = padding; i < padding + digit_height; i++)
@@ -928,9 +925,9 @@ void digit_separate2(int num_row, int num_col, int **roi)
 							}
 							
 							
-							
+							// ===========================
 							// print digit if checking
-							printf("digit number: %d\n", digit_num);
+							/*printf("digit number: %d\n", digit_num);
 
 
 							for (i = 0; i < digit_size[digit_num]; i++)
@@ -941,7 +938,8 @@ void digit_separate2(int num_row, int num_col, int **roi)
 								}
 								printf("\n");
 							}
-							printf("\n\n\n");
+							printf("\n\n\n");/* */
+							// ==========================
 							
 							// resize digit
 							
@@ -951,7 +949,7 @@ void digit_separate2(int num_row, int num_col, int **roi)
 							// print single digit
 							
 						} // if (digit_num < MAX_DIGITS
-						
+						last_mid = mid_col;
 						digit_num++;
 					} // if (!bad)
 				}
