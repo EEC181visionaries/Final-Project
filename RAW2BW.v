@@ -41,7 +41,7 @@
 //   V2.0 :| Jessica MA	       :| 05/04/15  :| RGB to BW
 // --------------------------------------------------------------------
 
-module RAW2RGB(			oBlack_White,
+module RAW2BW(			oBlack_White,
 				oDVAL,
 				iX_Cont,
 				iY_Cont,
