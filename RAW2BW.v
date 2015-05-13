@@ -125,13 +125,13 @@ end
 always@(posedge iCLK)
 begin
 	//RGB2Gray
-	gray = sCCD_R[11:2]*27 + sCCD_G[11:2]*91 + sCCD_B[11:2]*9;
+	gray = mCCD_R[11:2]*27 + mCCD_G[11:2]*91 + mCCD_B[11:2]*9;
 
 	//Gray2BlackWhite
-	if(gray[11:7]<130) // 130 is manually tested value
-		mBlack_White = 0; //Black
-        else
-		mBlack_White = 1; //White
+	if(gray[16:7] < 130) // 130 is manually tested value
+		mBlack_White <= 0; //Black
+   else
+		mBlack_White <= 1; //White
 end
 
 endmodule
