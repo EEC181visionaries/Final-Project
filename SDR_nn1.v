@@ -1,6 +1,6 @@
 module multiplier();
 
-  reg bias1[199:0];
+  reg [7:0]bias1[199:0];
   
   initial begin
 
