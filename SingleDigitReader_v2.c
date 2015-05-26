@@ -1,4 +1,4 @@
-// SingleDigitReader_v2.c - Reads in a photo and prints out data
+// SingleDigitReader_v2.c - Read in a photo and prints out data
 //                          Added region2 NOT TESTED!
 
 // Libraries
