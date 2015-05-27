@@ -1,4 +1,4 @@
-// SingleDigitReader.c - Reads in a photo and prints out data
+// SingleDigitReader.c - Read in a photo and prints out data
 //                       Using GLOBAL VARIABLES
 
 // Libraries
