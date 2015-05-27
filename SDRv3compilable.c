@@ -1,4 +1,4 @@
-// SDRv3compatible.c - region2, resize2, ad recognizer complied and working
+// SDRv3compatible.c - region2, resize2, add recognizer complied and working
 //                     separater2 not working
 
 // Libraries
